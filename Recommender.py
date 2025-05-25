@@ -58,15 +58,16 @@ with st.form(key="recommend_form"):
     st.markdown("### 📝 Job Description")
     job_desc = st.text_area("", placeholder="Describe the job role you're looking for...", height=150)
 
-    st.markdown("### 📂 Select Category (Optional)")
-    job_category = st.selectbox("", [""] + categories)
-
-    st.markdown("### 🏢 Select Company (Optional)")
+     st.markdown("### 🏢 Select Company (Optional)")
     job_company = st.selectbox("", [""] + companies)
 
     st.markdown("### 📍 Select Location (Optional)")
     job_location = st.selectbox("", [""] + locations)
 
+    st.markdown("### 📂 Select Category (Optional)")
+    job_category = st.selectbox("", [""] + categories)
+
+    # ✅ Submit button INSIDE the form
     submit = st.form_submit_button("🔎 Recommend Jobs")
 
 # ---------------------- On Submit ----------------------
