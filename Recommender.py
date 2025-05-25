@@ -58,7 +58,7 @@ with st.form(key="recommend_form"):
     st.markdown("### 📝 Job Description")
     job_desc = st.text_area("", placeholder="Describe the job role you're looking for...", height=150)
 
-     st.markdown("### 🏢 Select Company (Optional)")
+    st.markdown("### 🏢 Select Company (Optional)")
     job_company = st.selectbox("", [""] + companies)
 
     st.markdown("### 📍 Select Location (Optional)")
