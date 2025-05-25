@@ -8,14 +8,14 @@ from sklearn.neighbors import NearestNeighbors
 from io import BytesIO
 from fpdf import FPDF
 
-# Set page configuration for centered layout and title
+# Configure page with centered layout and smaller default font size
 st.set_page_config(page_title="Job Role Recommender", layout="centered")
 
 @st.cache_resource
 def load_resources():
     """
     Load model, vectorizer, and job data from disk.
-    Cache to avoid reloading on every interaction.
+    Cache to avoid repeated loading.
     """
     try:
         with open("job_recommender_model.pkl", "rb") as f:
@@ -36,24 +36,23 @@ def load_resources():
 
     return model, vectorizer, data
 
-# Load resources once at startup
+# Load resources once
 model, vectorizer, data = load_resources()
 
-# Stop app if data is missing or empty
+# Stop if no data
 if data.empty:
-    st.error("❌ Job data not found or is empty.")
+    st.error("❌ Job data not found or empty.")
     st.stop()
 
-# Prepare fallback columns if missing
+# Fallbacks for missing columns
 if "processed_text" not in data.columns:
-    st.warning("🛠 'processed_text' column missing. Using 'keywords' as fallback.")
+    st.warning("🛠 'processed_text' missing. Using 'keywords'.")
     data["processed_text"] = data["keywords"].fillna("").astype(str)
 
 if "title" not in data.columns:
-    st.warning("🛠 'title' column missing. Using first 5 words of processed_text as fallback.")
+    st.warning("🛠 'title' missing. Using first 5 words of processed_text.")
     data["title"] = data["processed_text"].apply(lambda x: " ".join(x.split()[:5]) if isinstance(x, str) else "N/A")
 
-# Fill or extract missing info for filters
 data["location"] = data.get("location", "Unknown")
 data["experience"] = data.get("experience", pd.Series()).fillna(
     data["keywords"].str.extract(r'(Fresher|Experienced)', expand=False)
@@ -65,43 +64,43 @@ data["job_type"] = data.get("job_type", pd.Series()).fillna(
 
 data["country"] = data.get("country", "Unknown")
 
-# Define filter options
+# Filter options
 experience_levels = ["Fresher", "Experienced"]
 locations = sorted(data["country"].replace("", np.nan).dropna().unique())
 job_types = ["Remote", "On-site", "Hybrid", "Freelance", "Full-Time", "Part-Time", "Contract"]
 
-# Display app header and description
+# Header with smaller font sizes for compactness
 st.markdown("""
-    <div style='text-align: center; margin-bottom: 20px;'>
-        <h1 style="font-weight: 700; color: #4B6EAF;">🔍 AI-Powered Job Role Recommender</h1>
-        <p style="font-size: 18px; color: #555;">Get top job suggestions based on your description, with experience, location, and job type filters.</p>
+    <div style='text-align: center; margin-bottom: 15px;'>
+        <h1 style="font-weight: 700; color: #4B6EAF; font-size: 28px;">🔍 AI-Powered Job Role Recommender</h1>
+        <p style="font-size: 14px; color: #555; margin-top: -10px;">Get top job suggestions based on your description, with filters.</p>
     </div>
 """, unsafe_allow_html=True)
 
-# Create user input form
+# User input form
 with st.form(key="recommend_form"):
-    # Job description input area with header
+    # Smaller header for input
     st.markdown("""
-    <div style='text-align: center; margin-bottom: 10px;'>
-        <h3 style="color: #333;">📝 Job Description</h3>
+    <div style='text-align: center; margin-bottom: 8px;'>
+        <h3 style="color: #333; font-size: 18px;">📝 Job Description</h3>
     </div>
     """, unsafe_allow_html=True)
 
-    job_desc = st.text_area("", placeholder="Describe the job role you're looking for...", height=100)
+    # Smaller height for text area to save vertical space
+    job_desc = st.text_area("", placeholder="Describe the job role you're looking for...", height=80)
 
-    # Filters arranged in three equal columns
+    # Filters in three columns with compact spacing
     col1, col2, col3 = st.columns(3)
     with col1:
-        exp_filter = st.multiselect("👤 Experience Level(s) (Optional)", experience_levels)
+        exp_filter = st.multiselect("👤 Experience Level(s)", experience_levels, max_selections=2)
     with col2:
-        location_filter = st.multiselect("🌍 Country/Countries (Optional)", locations)
+        location_filter = st.multiselect("🌍 Country/Countries", locations)
     with col3:
-        job_type_filter = st.multiselect("🧑‍💻 Job Type(s) (Optional)", job_types)
+        job_type_filter = st.multiselect("🧑‍💻 Job Type(s)", job_types)
 
-    # Button row with three equal columns to perfectly align under filters
+    # Button row, centered submit button with minimal margin
     btn_col1, btn_col2, btn_col3 = st.columns(3)
     with btn_col2:
-        # Submit button centered with CSS styling
         submit = st.form_submit_button("🔎 Recommend Jobs")
         st.markdown(
             """
@@ -110,6 +109,8 @@ with st.form(key="recommend_form"):
                 margin-left: auto;
                 margin-right: auto;
                 display: block;
+                padding: 6px 20px;
+                font-size: 14px;
             }
             </style>
             """,
@@ -118,8 +119,7 @@ with st.form(key="recommend_form"):
 
 def generate_pdf(dataframe):
     """
-    Generate PDF from job recommendations DataFrame.
-    Returns BytesIO stream for Streamlit download button.
+    Generate a PDF report from recommendations.
     """
     pdf = FPDF()
     pdf.add_page()
@@ -149,40 +149,34 @@ def generate_pdf(dataframe):
 
 def strip_html_tags(text):
     """
-    Remove HTML tags from string for clean PDF output.
+    Remove HTML tags from text for PDF.
     """
     if not isinstance(text, str):
         return text
     clean = re.compile('<.*?>')
     return re.sub(clean, '', text)
 
-# Process form submission
 if submit:
-    # Validate job description input
     if not job_desc.strip():
         st.warning("⚠️ Please enter a job description.")
     elif model is None or vectorizer is None:
         st.error("⚠️ Model or vectorizer not loaded.")
     else:
-        # Vectorize user input
         user_vec = vectorizer.transform([job_desc])
         if user_vec.nnz == 0:
             st.warning("⚠️ Your job description is too vague or contains unfamiliar terms. Try adding more relevant keywords.")
             st.stop()
 
         try:
-            # Find top 10 nearest neighbors
             distances, indices = model.kneighbors(user_vec, n_neighbors=10)
         except ValueError:
             st.error("⚠️ Unable to find similar jobs. Please try rephrasing your job description.")
             st.stop()
 
-        # Get recommended jobs and calculate similarity %
         results = data.iloc[indices[0]].copy()
         results["Similarity (%)"] = [round((1 - d) * 100, 2) for d in distances[0]]
         keyword_results = results.copy()
 
-        # Apply filters if selected
         if exp_filter:
             filtered = keyword_results[keyword_results["experience"].isin(exp_filter)]
             if not filtered.empty:
@@ -204,22 +198,18 @@ if submit:
             else:
                 keyword_results = location_matched
 
-        # Show warning if no results after filtering
         if keyword_results.empty:
             st.warning("😕 No matching jobs found.")
         else:
-            # Sort and rank results by similarity descending
             keyword_results = keyword_results.sort_values("Similarity (%)", ascending=False).reset_index(drop=True)
             keyword_results.index += 1
             keyword_results["Rank"] = keyword_results.index
 
-            # Extract keywords from user input for highlighting
             def extract_keywords(text):
                 return set(re.findall(r"\b\w{4,}\b", text.lower()))
 
             keywords = extract_keywords(job_desc)
 
-            # Highlight matched keywords in titles and keywords fields
             def highlight_keywords(text):
                 for word in keywords:
                     pattern = re.compile(rf"\b({re.escape(word)})\b", re.IGNORECASE)
@@ -230,47 +220,48 @@ if submit:
             keyword_results["title_highlighted"] = keyword_results["title"].astype(str).apply(highlight_keywords)
             keyword_results["keywords"] = keyword_results["keywords"].astype(str).apply(highlight_keywords)
 
-            # Display job recommendations with smaller font and similarity score
+            # Display results with smaller font, tighter spacing for compactness
             st.success("✅ Top Matching Job Roles:")
             for _, row in keyword_results.iterrows():
                 st.markdown(f"""
                 <div style="
-                    padding: 12px; 
+                    padding: 8px; 
                     border: 1px solid #ddd; 
-                    border-radius: 10px; 
-                    margin-bottom: 12px; 
+                    border-radius: 8px; 
+                    margin-bottom: 8px; 
                     background-color: #f9f9f9;
-                    font-size: 14px;  /* smaller font */
-                    line-height: 1.3;
+                    font-size: 12px;  /* smaller font */
+                    line-height: 1.2;
                     ">
-                    <h4 style="color: #2c3e50; margin-bottom: 6px; font-size: 16px;">🔹 {row['title_highlighted']}</h4>
-                    <p style="color: #555; margin: 2px 0;">
+                    <h4 style="color: #2c3e50; margin-bottom: 4px; font-size: 14px;">🔹 {row['title_highlighted']}</h4>
+                    <p style="color: #555; margin: 1px 0;">
                         <strong>Location:</strong> {row['country']} &nbsp;&nbsp; 
                         <strong>Date:</strong> {pd.to_datetime(row['published_date']).date() if pd.notna(row['published_date']) else 'N/A'} &nbsp;&nbsp; 
                         <strong>Experience:</strong> {row['experience']} &nbsp;&nbsp;
                         <strong>Type:</strong> {row['job_type']}
                     </p>
-                    <p style="color: #666; margin: 2px 0;"><strong>Keywords:</strong> {row['keywords']}</p>
-                    <p style="color: #1a73e8; font-weight: 600; margin: 2px 0;">Similarity: {row['Similarity (%)']}%</p>
+                    <p style="color: #666; margin: 1px 0;"><strong>Keywords:</strong> {row['keywords']}</p>
+                    <p style="color: #1a73e8; font-weight: 600; margin: 1px 0;">Similarity: {row['Similarity (%)']}%</p>
                 </div>
                 """, unsafe_allow_html=True)
 
-            # Show bar chart of top 5 countries in results
+            # Bar chart of top 5 countries with tighter layout
             st.markdown("---")
             top_countries = keyword_results["country"].value_counts().head(5)
             if not top_countries.empty:
                 st.markdown("### 🌎 Top 5 Available Countries")
-                fig, ax = plt.subplots()
+                fig, ax = plt.subplots(figsize=(6, 3))
                 top_countries.plot(kind='bar', ax=ax, color='#4B6EAF')
                 for i, (label, value) in enumerate(top_countries.items()):
-                    ax.text(i, value + 0.1, str(value), ha='center', fontweight='bold')
-                plt.title("Top 5 Available Countries")
-                plt.ylabel("Job Count")
-                plt.xticks(rotation=45)
+                    ax.text(i, value + 0.1, str(value), ha='center', fontweight='bold', fontsize=9)
+                plt.title("Top 5 Available Countries", fontsize=12)
+                plt.ylabel("Job Count", fontsize=10)
+                plt.xticks(rotation=45, fontsize=10)
+                plt.yticks(fontsize=10)
                 plt.tight_layout()
                 st.pyplot(fig)
 
-            # Clean text for PDF (remove HTML tags)
+            # Prepare PDF data (clean HTML tags)
             pdf_ready_df = keyword_results.copy()
             pdf_ready_df['keywords'] = pdf_ready_df['keywords'].apply(strip_html_tags)
             pdf_ready_df['title'] = pdf_ready_df['title'].apply(strip_html_tags)
@@ -278,16 +269,16 @@ if submit:
             # Generate PDF bytes
             pdf_bytes = generate_pdf(pdf_ready_df)
 
-            # Center the PDF download button below results
+            # Centered download button with smaller styling
             col1, col2, col3 = st.columns(3)
             with col2:
                 st.download_button(
                     label="📥 Download Recommendations as PDF",
                     data=pdf_bytes,
                     file_name="job_recommendations.pdf",
-                    mime="application/pdf"
+                    mime="application/pdf",
+                    use_container_width=True,
                 )
-                # Center the download button with CSS
                 st.markdown(
                     """
                     <style>
@@ -295,6 +286,8 @@ if submit:
                         margin-left: auto;
                         margin-right: auto;
                         display: block;
+                        font-size: 14px;
+                        padding: 6px 20px;
                     }
                     </style>
                     """,
