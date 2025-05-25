@@ -6,7 +6,6 @@ import re
 import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 from sklearn.feature_extraction.text import TfidfVectorizer
-import random
 from io import BytesIO
 from fpdf import FPDF
 
@@ -103,8 +102,10 @@ with st.form(key="recommend_form"):
     with col3:
         job_type_filter = st.multiselect("🧑‍💻 Job Type(s) (Optional)", job_types)
 
-    # Submit button for the form
-    submit = st.form_submit_button("🔎 Recommend Jobs")
+    # Center the submit button by placing it in the middle of three columns
+    btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
+    with btn_col2:
+        submit = st.form_submit_button("🔎 Recommend Jobs")
 
 def generate_pdf(dataframe):
     """
@@ -142,6 +143,13 @@ def generate_pdf(dataframe):
     # Get PDF as bytes string and wrap in BytesIO for Streamlit download
     pdf_bytes = pdf.output(dest='S').encode('latin1')
     return BytesIO(pdf_bytes)
+
+def strip_html_tags(text):
+    """Remove HTML tags from a string."""
+    if not isinstance(text, str):
+        return text
+    clean = re.compile('<.*?>')
+    return re.sub(clean, '', text)
 
 # Process form submission
 if submit:
@@ -251,8 +259,12 @@ if submit:
                 plt.tight_layout()
                 st.pyplot(fig)
 
-            # Generate PDF from filtered results and provide a centered download button
-            pdf_bytes = generate_pdf(keyword_results)
+            # Prepare clean DataFrame for PDF (remove HTML tags)
+            pdf_ready_df = keyword_results.copy()
+            pdf_ready_df['keywords'] = pdf_ready_df['keywords'].apply(strip_html_tags)
+            pdf_ready_df['title'] = pdf_ready_df['title'].apply(strip_html_tags)
+
+            pdf_bytes = generate_pdf(pdf_ready_df)
 
             # Use Streamlit columns to center the download button horizontally
             col1, col2, col3 = st.columns([1, 2, 1])
