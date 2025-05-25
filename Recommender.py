@@ -107,6 +107,20 @@ with st.form(key="recommend_form"):
     with btn_col2:
         submit = st.form_submit_button("🔎 Recommend Jobs")
 
+        # Add CSS margin to center the button visually inside the column
+        st.markdown(
+            """
+            <style>
+            div.stButton > button:first-child {
+                margin-left: auto;
+                margin-right: auto;
+                display: block;
+            }
+            </style>
+            """,
+            unsafe_allow_html=True,
+        )
+
 def generate_pdf(dataframe):
     """
     Generate a PDF file from the job recommendations DataFrame.
@@ -266,7 +280,7 @@ if submit:
 
             pdf_bytes = generate_pdf(pdf_ready_df)
 
-            # Use Streamlit columns to center the download button horizontally
+            # Center the download button similarly with columns + CSS
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 st.download_button(
@@ -274,4 +288,18 @@ if submit:
                     data=pdf_bytes,
                     file_name="job_recommendations.pdf",
                     mime="application/pdf"
+                )
+                
+                # CSS to center the download button inside its container
+                st.markdown(
+                    """
+                    <style>
+                    div.stDownloadButton > button:first-child {
+                        margin-left: auto;
+                        margin-right: auto;
+                        display: block;
+                    }
+                    </style>
+                    """,
+                    unsafe_allow_html=True,
                 )
