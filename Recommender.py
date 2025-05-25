@@ -102,12 +102,12 @@ with st.form(key="recommend_form"):
     with col3:
         job_type_filter = st.multiselect("🧑‍💻 Job Type(s) (Optional)", job_types)
 
-    # Center the submit button by placing it in the middle of three columns
+    # New row of three columns with same widths for buttons alignment below filters
     btn_col1, btn_col2, btn_col3 = st.columns([1, 2, 1])
     with btn_col2:
         submit = st.form_submit_button("🔎 Recommend Jobs")
 
-        # Add CSS margin to center the button visually inside the column
+        # Center the button with CSS
         st.markdown(
             """
             <style>
@@ -280,7 +280,7 @@ if submit:
 
             pdf_bytes = generate_pdf(pdf_ready_df)
 
-            # Center the download button similarly with columns + CSS
+            # Center the download button similarly with columns + CSS below results
             col1, col2, col3 = st.columns([1, 2, 1])
             with col2:
                 st.download_button(
@@ -289,8 +289,7 @@ if submit:
                     file_name="job_recommendations.pdf",
                     mime="application/pdf"
                 )
-                
-                # CSS to center the download button inside its container
+                # Center the download button with CSS
                 st.markdown(
                     """
                     <style>
