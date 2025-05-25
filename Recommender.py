@@ -1,8 +1,14 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
-from sklearn.metrics.pairwise import cosine_similarity
+import pickle
+from sklearn.neighbors import NearestNeighbors
+from sklearn.feature_extraction.text import TfidfVectorizer
+import matplotlib.pyplot as plt
+import re
+
+# ---------------------- Page Setup ----------------------
+st.set_page_config(page_title="Job Role Recommender", layout="centered")
 
 # ---------------------- Load Resources ----------------------
 @st.cache_resource
@@ -29,104 +35,100 @@ def load_resources():
 model, vectorizer, data = load_resources()
 
 # ---------------------- Error Handling ----------------------
-if data.empty:
-    st.error("❌ Job data not found or is empty.")
+if data.empty or model is None or vectorizer is None:
+    st.error("❌ Required files (model/vectorizer/data) not found or invalid.")
     st.stop()
 
-# Country list
-locations = sorted([
-    'Other', 'United States', 'India', 'Portugal', 'Germany', 'Canada', 'Singapore', 'United Kingdom',
-    'Denmark', 'Malaysia', 'Bangladesh', 'Saudi Arabia', 'Australia', 'Ukraine', 'Pakistan', 'Nigeria',
-    'Peru', 'Costa Rica', 'Switzerland', 'France', 'China', 'Israel', 'Hong Kong', 'Serbia', 'Bahrain',
-    'Thailand', 'Spain', 'Croatia', 'Luxembourg', 'Kenya', 'Finland', 'Bulgaria', 'Georgia', 'New Zealand',
-    'Lebanon', 'Uzbekistan', 'Palestinian Territories', 'Italy', 'Egypt', 'Albania', 'Netherlands', 'Mexico',
-    'Azerbaijan', 'Norway', 'Sweden', 'Czech Republic', 'United Arab Emirates', 'Uganda', 'South Africa',
-    'Honduras', 'Argentina', 'Belgium', 'Cyprus', 'Ecuador', 'Philippines', 'Puerto Rico', 'Holy See',
-    'Greece', 'Brazil', 'Morocco', 'Estonia', 'Poland', 'Iceland', 'Indonesia', 'Kuwait', 'Ireland', 'Panama',
-    'Jordan', 'Qatar', 'Tanzania', 'Turkey', 'Slovakia', 'Micronesia, Federated States of', 'Colombia',
-    'Tunisia', 'Algeria', 'Malta', 'Nepal', 'Dominican Republic', 'Macao', 'Bosnia and Herzegovina',
-    'Austria', 'Lithuania', 'Macedonia', 'Vietnam', 'South Korea', 'Romania', 'Cote d&#039;Ivoire', 'Reunion',
-    'Sri Lanka', 'Chile', 'Armenia', 'Japan', 'Cayman Islands', 'Isle of Man', 'Rwanda', 'Gabon',
-    'Saint Kitts and Nevis', 'Hungary', 'Kazakhstan', 'Zambia', 'Taiwan', 'New Caledonia', 'Barbados',
-    'Slovenia', 'Moldova', 'Oman', 'Venezuela', 'Montenegro', 'Paraguay', 'Bolivia', 'French Polynesia',
-    'Zimbabwe', 'Sint Maarten (Dutch part)', 'Trinidad and Tobago', 'Botswana', 'Ethiopia', 'Somalia',
-    'Gibraltar', 'Antigua and Barbuda', 'Latvia', 'Ghana', 'Kyrgyzstan', 'Jamaica', 'Jersey', 'Russia',
-    'Bermuda', 'Mali', 'Cameroon', 'Bahamas', 'Maldives', 'Benin', 'Mongolia', 'Guernsey',
-    'Netherlands Antilles', 'Uruguay', 'Curacao', 'Malawi', 'Aland Islands', 'Mauritius', 'Cambodia',
-    'United States Minor Outlying Islands', 'Seychelles', 'Guatemala', 'Namibia', 'Timor-Leste', 'Haiti',
-    'Mozambique', 'Tajikistan', 'American Samoa', 'Andorra', 'El Salvador', 'British Virgin Islands',
-    'Grenada', 'Sierra Leone', 'Mauritania', 'Yemen', 'Anguilla', 'Myanmar', 'Angola', 'Senegal',
-    'Papua New Guinea', 'San Marino', 'Djibouti', 'Guyana', 'Togo', 'Belize', 'Comoros', 'Guinea',
-    'Liechtenstein', 'Aruba', 'Saint Lucia', 'Guam', 'Madagascar', 'Nicaragua',
-    'Saint Vincent and the Grenadines', 'Bhutan', 'Kiribati', 'Gambia', 'Swaziland', 'Saint Helena',
-    'United States Virgin Islands', 'Turkmenistan', 'Belarus', 'Vanuatu', 'Brunei Darussalam',
-    'Congo, the Democratic Republic of the', 'Dominica', 'Niue', 'Guadeloupe',
-    'Turks and Caicos Islands', 'Tuvalu', 'Laos', 'Monaco', 'Fiji', 'Martinique',
-    'Bonaire, Sint Eustatius and Saba', 'Congo', 'Suriname', 'Central African Republic', 'Faroe Islands',
-    'Chad', 'Northern Mariana Islands', 'Palau', 'Eritrea', 'Burkina Faso', 'Samoa',
-    'Cocos (Keeling) Islands', 'Niger', 'Burundi', 'Cook Islands', 'Greenland', 'French Guiana'
-])
+if "processed_text" not in data.columns:
+    st.error("❌ Column 'processed_text' missing from data. Please ensure it's included in 'job_data.csv'.")
+    st.stop()
 
-# Example company names
-companies = [
-    "Google", "Microsoft", "Amazon", "Meta", "Apple", "Netflix",
-    "Adobe", "Oracle", "Salesforce", "SAP"
-]
+# ---------------------- UI Header ----------------------
+st.markdown("<h1 style='text-align: center;'>🔍 AI-Powered Job Role Recommender</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Enter a job description and get AI-powered suggestions with similarity scores.</p>", unsafe_allow_html=True)
 
-# Get categories from dataset
-categories = sorted(jobs_df['category'].dropna().unique().tolist())
+# ---------------------- Dropdown Filters ----------------------
+st.markdown("## 🎛️ Optional Filters")
 
-# Sidebar and Title
-st.set_page_config(page_title="Job Recommender", layout="wide")
-st.title("🏋️ Job Recommendation Engine")
+all_companies = sorted(data["company"].dropna().unique().tolist())
+company_input = st.selectbox("Select a Company (or type a new one)", options=[""] + all_companies)
 
-# --- Form ---
-with st.form(key="recommend_form"):
-    st.markdown("### 📘 Job Description")
+all_countries = sorted(data["country"].dropna().unique().tolist())
+location_input = st.selectbox("Select a Location", options=[""] + all_countries)
+
+categories = sorted(data["category"].dropna().unique())
+category_input = st.selectbox("Select a Category", options=[""] + categories)
+
+# ---------------------- Job Description Form ----------------------
+st.markdown("## 📝 Job Description")
+
+with st.form("recommend_form"):
     job_desc = st.text_area("Describe the job role you're looking for", height=150)
+    submitted = st.form_submit_button("🔎 Recommend Jobs")
 
-    st.markdown("### 📂 Select Category (Optional)")
-    job_category = st.selectbox("Category", [""] + categories)
-
-    st.markdown("### 🏢 Company (Type or select)")
-    company_input = st.text_input("Enter Company Name (or select below)")
-    job_company = st.selectbox("Or pick from list", [""] + companies)
-    job_company = company_input if company_input else job_company
-
-    st.markdown("### 🌍 Location (Country)")
-    job_location = st.selectbox("Select a country", [""] + locations)
-
-    submit = st.form_submit_button("🔎 Recommend Jobs")
-
-# --- Recommendation Logic ---
-if submit:
-    if not job_desc:
-        st.warning("Please provide a job description.")
+# ---------------------- Recommendation Logic ----------------------
+if submitted:
+    if not job_desc.strip():
+        st.warning("⚠️ Please enter a job description.")
     else:
-        # Prepare input text
-        input_text = job_desc + " " + job_category + " " + job_company + " " + job_location
+        user_vec = vectorizer.transform([job_desc])
+        distances, indices = model.kneighbors(user_vec, n_neighbors=10)
 
-        # Vectorize input
-        input_vec = tfidf_vectorizer.transform([input_text])
-        job_vecs = tfidf_vectorizer.transform(jobs_df['processed_text'])
+        results = data.iloc[indices[0]].copy()
+        results["Similarity (%)"] = [round((1 - d) * 100, 2) for d in distances[0]]
 
-        # Compute cosine similarity
-        sims = cosine_similarity(input_vec, job_vecs).flatten()
-        jobs_df['similarity'] = sims
-        top_jobs = jobs_df.sort_values(by='similarity', ascending=False).head(10)
+        # Apply dropdown filters
+        if company_input:
+            results = results[results["company"].str.lower() == company_input.lower()]
+        if location_input:
+            results = results[results["country"].str.lower() == location_input.lower()]
+        if category_input:
+            results = results[results["category"] == category_input]
 
-        # Display results
-        st.markdown("## 🔍 Top Recommended Jobs")
-        for _, row in top_jobs.iterrows():
-            st.markdown(f"**{row['title']}**")
-            st.markdown(f"- 🏢 **Company:** {job_company if job_company else 'N/A'}")
-            st.markdown(f"- 🌍 **Location:** {row['country']}")
-            st.markdown(f"- ✔️ **Category:** {row['category']}")
-            st.markdown(f"- ➜ [View Job Posting]({row['link']})")
-            st.markdown("---")
+        if results.empty:
+            st.warning("😕 No matching jobs found for the given filters.")
+        else:
+            results = results.sort_values("Similarity (%)", ascending=False).reset_index(drop=True)
+            results.index += 1
+            results["Rank"] = results.index
 
-        # Optional download
-        st.markdown("### 📂 Download Results")
-        download_cols = ['title', 'link', 'country', 'category', 'similarity']
-        csv_data = top_jobs[download_cols].to_csv(index=False)
-        st.download_button("📄 Download as CSV", csv_data, file_name="recommended_jobs.csv", mime="text/csv")
+            # Highlight keywords from description
+            def extract_keywords(text):
+                return set(re.findall(r"\b\w{4,}\b", text.lower()))
+
+            keywords = extract_keywords(job_desc)
+
+            def highlight_keywords(title):
+                for word in keywords:
+                    title = re.sub(f"(?i)\\b({word})\\b", r"<mark><b>\1</b></mark>", title)
+                return title
+
+            results["title_highlighted"] = results["title"].apply(highlight_keywords)
+
+            # ------------------ Display Results ------------------
+            st.success("✅ Top Matching Job Roles:")
+            for _, row in results.iterrows():
+                st.markdown(f"""
+                <div style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                    <h4>🔹 {row['title_highlighted']}</h4>
+                    <p><strong>Company:</strong> {row['company']} &nbsp;&nbsp; 
+                       <strong>Location:</strong> {row['country']} &nbsp;&nbsp; 
+                       <strong>Date:</strong> {row['published_date'].date()} &nbsp;&nbsp; 
+                       <strong>Category:</strong> {row['category']}</p>
+                    <p><strong>Similarity Score:</strong> {row['Similarity (%)']}%</p>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # ------------------ Similarity Chart ------------------
+            st.markdown("### 📊 Similarity Score Chart")
+            fig, ax = plt.subplots()
+            ax.bar(results["Rank"], results["Similarity (%)"], color="#4C9F70")
+            ax.set_xlabel("Rank")
+            ax.set_ylabel("Similarity (%)")
+            ax.set_title("Top Job Role Similarities")
+            st.pyplot(fig)
+
+            # ------------------ CSV Download ------------------
+            download_cols = ["Rank", "title", "company", "country", "published_date", "category", "Similarity (%)"]
+            csv_data = results[download_cols].to_csv(index=False)
+            st.download_button("📥 Download Recommendations as CSV", csv_data, "job_recommendations.csv", "text/csv")
