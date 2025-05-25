@@ -98,12 +98,13 @@ with st.form(key="recommend_form"):
     </div>
     """, unsafe_allow_html=True)
 
-    # Text area for user input, pre-filled from session state
+    # Text area for user input with hidden label to avoid accessibility warning
     job_desc = st.text_area(
-        "", 
-        placeholder="Describe the job role you're looking for...", 
-        height=80, 
-        value=st.session_state.job_desc
+        label="Job Description",
+        value=st.session_state.job_desc,
+        height=80,
+        placeholder="Describe the job role you're looking for...",
+        label_visibility="collapsed",
     )
 
     # Three columns for filters: Experience, Location, Job Type
@@ -115,24 +116,14 @@ with st.form(key="recommend_form"):
     with col3:
         job_type_filter = st.multiselect("🧑‍💻 Job Type(s)", job_types)
 
-    # Flex container for buttons: side-by-side and horizontally centered
-    st.markdown(
-        """
-        <div style="
-            display: flex;
-            justify-content: center;  /* center horizontally */
-            align-items: center;      /* center vertically */
-            gap: 16px;                /* space between buttons */
-            margin-top: 15px;
-        ">
-        """,
-        unsafe_allow_html=True,
-    )
-
-    submit = st.form_submit_button("🔎 Recommend Jobs")
-    reset = st.form_submit_button("♻️ Reset All")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Use 3 columns: left and right empty, middle with buttons side-by-side
+    left, center, right = st.columns([1, 2, 1])
+    with center:
+        btn_col1, btn_col2 = st.columns(2, gap="small")
+        with btn_col1:
+            submit = st.form_submit_button("🔎 Recommend Jobs")
+        with btn_col2:
+            reset = st.form_submit_button("♻️ Reset All")
 
     # Update session state on submit or reset
     if submit:
