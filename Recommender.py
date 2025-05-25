@@ -103,19 +103,26 @@ if submit:
             if exp_filter:
                 results = results[results["experience"].isin(exp_filter)]
 
+            location_displayed = False
             if location_filter:
                 location_matched = results[results["country"].isin(location_filter)]
                 if location_matched.empty:
                     alt_countries = results["country"].value_counts().head(5)
-                    st.info(f"📍 No jobs found in selected country/countries, but available in:")
-                    fig, ax = plt.subplots()
-                    alt_countries.plot(kind='bar', ax=ax, color='skyblue')
-                    for i, v in enumerate(alt_countries):
-                        ax.text(i, v + 0.1, str(v), ha='center', fontweight='bold')
-                    plt.title("Top 5 Available Countries")
-                    plt.ylabel("Job Count")
-                    st.pyplot(fig)
-                    results = results[results["country"].isin(alt_countries.index)]
+                    if alt_countries.empty:
+                        st.warning("😕 No alternate countries with job availability found.")
+                        results = pd.DataFrame()
+                    else:
+                        alt_country_list = ", ".join(alt_countries.index.tolist())
+                        st.info(f"📍 No jobs found in selected country/countries, but available in: {alt_country_list}")
+                        fig, ax = plt.subplots()
+                        alt_countries.plot(kind='bar', ax=ax, color='skyblue')
+                        for i, (label, value) in enumerate(alt_countries.items()):
+                            ax.text(i, value + 0.1, str(value), ha='center', fontweight='bold')
+                        plt.title("Top 5 Available Countries")
+                        plt.ylabel("Job Count")
+                        st.pyplot(fig)
+                        results = results[results["country"].isin(alt_countries.index)]
+                        location_displayed = True
                 else:
                     results = location_matched
 
@@ -153,6 +160,19 @@ if submit:
                            <strong>Type:</strong> {row['job_type']}</p>
                     </div>
                     """, unsafe_allow_html=True)
+
+                st.markdown("---")
+                if not location_displayed:
+                    top_countries = results["country"].value_counts().head(5)
+                    if not top_countries.empty:
+                        st.markdown("### 🌎 Top 5 Available Countries")
+                        fig, ax = plt.subplots()
+                        top_countries.plot(kind='bar', ax=ax, color='salmon')
+                        for i, (label, value) in enumerate(top_countries.items()):
+                            ax.text(i, value + 0.1, str(value), ha='center', fontweight='bold')
+                        plt.title("Top 5 Available Countries")
+                        plt.ylabel("Job Count")
+                        st.pyplot(fig)
 
                 download_cols = ["Rank", "processed_text", "company", "country", "published_date", "experience", "job_type", "Similarity (%)"]
                 csv_data = results[download_cols].to_csv(index=False)
