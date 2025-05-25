@@ -41,7 +41,10 @@ if "processed_text" not in data.columns:
     st.warning("🛠 'processed_text' column missing. Using 'keywords' as fallback.")
     data["processed_text"] = data["keywords"].fillna("").astype(str)
 
-company_names = ["RemoteHires", "TalentBridge", "CodeCrafters", "InnovateX", "NextWave"]
+if "title" not in data.columns:
+    st.warning("🛠 'title' column missing. Using first 5 words of processed_text as fallback.")
+    data["title"] = data["processed_text"].apply(lambda x: " ".join(x.split()[:5]) if isinstance(x, str) else "N/A")
+
 def generate_relevant_company(keywords):
     keywords = str(keywords).lower()
     if "remote" in keywords:
@@ -55,7 +58,7 @@ def generate_relevant_company(keywords):
     elif "developer" in keywords or "software" in keywords:
         return "NextWave"
     else:
-        return random.choice(company_names)
+        return random.choice(["RemoteHires", "TalentBridge", "CodeCrafters", "InnovateX", "NextWave"])
 
 data["company"] = data.get("company", pd.Series()).fillna(data["keywords"].apply(generate_relevant_company))
 data["location"] = data.get("location", "Unknown")
@@ -102,9 +105,6 @@ if submit:
 
         try:
             distances, indices = model.kneighbors(user_vec, n_neighbors=10)
-            if indices is None or len(indices[0]) == 0:
-                st.warning("😕 No matching jobs found. Try describing the job in more detail.")
-                st.stop()
         except ValueError as e:
             st.error("⚠️ Unable to find similar jobs. Please try rephrasing your job description.")
             st.stop()
@@ -152,7 +152,8 @@ if submit:
                     text = pattern.sub(r"<mark><b>\1</b></mark>", text)
                 return text
 
-            keyword_results["title_highlighted"] = keyword_results["processed_text"].astype(str).apply(highlight_keywords)
+            keyword_results["title"] = keyword_results["title"].fillna("N/A")
+            keyword_results["title_highlighted"] = keyword_results["title"].astype(str).apply(highlight_keywords)
             keyword_results["company"] = keyword_results["company"].astype(str).apply(highlight_keywords)
             keyword_results["keywords"] = keyword_results["keywords"].astype(str).apply(highlight_keywords)
 
@@ -182,6 +183,6 @@ if submit:
                 plt.ylabel("Job Count")
                 st.pyplot(fig)
 
-            download_cols = ["Rank", "processed_text", "company", "country", "published_date", "experience", "job_type", "Similarity (%)"]
+            download_cols = ["Rank", "title", "processed_text", "company", "country", "published_date", "experience", "job_type", "Similarity (%)"]
             csv_data = keyword_results[download_cols].to_csv(index=False)
             st.download_button("📥 Download Recommendations as CSV", csv_data, "job_recommendations.csv", "text/csv")
