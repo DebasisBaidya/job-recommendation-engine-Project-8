@@ -61,27 +61,27 @@ if "job_type" not in data.columns:
 if "country" not in data.columns:
     data["country"] = "Unknown"
 
-experience_levels = sorted(data["experience"].dropna().unique())
+experience_levels = ["Fresher", "Experienced"]
 locations = sorted(data["country"].dropna().unique())
-job_types = sorted(data["job_type"].dropna().unique())
+job_types = ["Remote", "On-site", "Hybrid", "Freelance", "Full-Time", "Part-Time", "Contract"]
 
 # ---------------------- UI Header ----------------------
 st.markdown("<h1 style='text-align: center;'>🔍 AI-Powered Job Role Recommender</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Get top job suggestions based on your description, with experience, location, and job type filters.</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Get top job suggestions based on your description, with experience, location, and work type filters.</p>", unsafe_allow_html=True)
 
 # ---------------------- Input Form ----------------------
 with st.form(key="recommend_form"):
     st.markdown("### 📝 Job Description")
     job_desc = st.text_area("", placeholder="Describe the job role you're looking for...", height=150)
 
-    st.markdown("### 👤 Select Experience Level (Optional)")
-    exp_filter = st.selectbox("", [""] + experience_levels)
+    st.markdown("### 👤 Select Experience Level(s) (Optional)")
+    exp_filter = st.multiselect("", experience_levels)
 
     st.markdown("### 🌍 Select Location (Optional)")
     location_filter = st.selectbox("", [""] + locations)
 
-    st.markdown("### 💼 Select Job Type (Optional)")
-    job_type_filter = st.selectbox("", [""] + job_types)
+    st.markdown("### 🧑‍💻 Select Work Type(s) (Optional)")
+    job_type_filter = st.multiselect("", job_types)
 
     submit = st.form_submit_button("🔎 Recommend Jobs")
 
@@ -99,7 +99,7 @@ if submit:
         results["Similarity (%)"] = [round((1 - d) * 100, 2) for d in distances[0]]
 
         if exp_filter:
-            results = results[results["experience"] == exp_filter]
+            results = results[results["experience"].isin(exp_filter)]
 
         location_matched = results[results["country"] == location_filter] if location_filter else results
         if location_filter and location_matched.empty:
@@ -112,19 +112,12 @@ if submit:
             plt.title("Top 5 Available Countries")
             plt.ylabel("Job Count")
             st.pyplot(fig)
+            results = results[results["country"].isin(alt_countries.index)]
         else:
             results = location_matched
 
         if job_type_filter:
-            filtered_type = results[results["job_type"] == job_type_filter]
-            if filtered_type.empty:
-                alt_types = results["job_type"].unique()
-                if len(alt_types) > 0:
-                    st.info(f"💼 No jobs found for job type '{job_type_filter}', but available types: {', '.join(alt_types)}")
-                else:
-                    st.warning("😕 No matching job types found.")
-            else:
-                results = filtered_type
+            results = results[results["job_type"].isin(job_type_filter)]
 
         if results.empty:
             st.warning("😕 No matching jobs found.")
