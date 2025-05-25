@@ -4,16 +4,34 @@ import numpy as np
 import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 
-# Load necessary files
+# ---------------------- Load Resources ----------------------
 @st.cache_resource
-def load_model_and_data():
-    model = joblib.load("models/tfidf_vectorizer.pkl")
-    df = pd.read_csv("data/job_data.csv")
-    if 'processed_text' not in df.columns:
-        df['processed_text'] = df['title'].fillna('') + ' ' + df['category'].fillna('') + ' ' + df['keywords'].fillna('')
-    return model, df
+def load_resources():
+    try:
+        with open("job_recommender_model.pkl", "rb") as f:
+            model = pickle.load(f)
+    except:
+        model = None
 
-tfidf_vectorizer, jobs_df = load_model_and_data()
+    try:
+        with open("vectorizer.pkl", "rb") as f:
+            vectorizer = pickle.load(f)
+    except:
+        vectorizer = None
+
+    try:
+        data = pd.read_csv("job_data.csv", parse_dates=["published_date"])
+    except:
+        data = pd.DataFrame()
+
+    return model, vectorizer, data
+
+model, vectorizer, data = load_resources()
+
+# ---------------------- Error Handling ----------------------
+if data.empty:
+    st.error("❌ Job data not found or is empty.")
+    st.stop()
 
 # Country list
 locations = sorted([
