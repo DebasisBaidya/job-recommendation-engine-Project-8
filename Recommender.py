@@ -45,22 +45,7 @@ if "title" not in data.columns:
     st.warning("🛠 'title' column missing. Using first 5 words of processed_text as fallback.")
     data["title"] = data["processed_text"].apply(lambda x: " ".join(x.split()[:5]) if isinstance(x, str) else "N/A")
 
-def generate_relevant_company(keywords):
-    keywords = str(keywords).lower()
-    if "remote" in keywords:
-        return "RemoteHires"
-    elif "hybrid" in keywords:
-        return "TalentBridge"
-    elif "freelance" in keywords:
-        return "CodeCrafters"
-    elif "data" in keywords or "analytics" in keywords:
-        return "InnovateX"
-    elif "developer" in keywords or "software" in keywords:
-        return "NextWave"
-    else:
-        return random.choice(["RemoteHires", "TalentBridge", "CodeCrafters", "InnovateX", "NextWave"])
-
-data["company"] = data.get("company", pd.Series()).fillna(data["keywords"].apply(generate_relevant_company))
+data["company"] = ""
 data["location"] = data.get("location", "Unknown")
 data["experience"] = data.get("experience", pd.Series()).fillna(data["keywords"].str.extract(r'(Fresher|Experienced)', expand=False)).fillna("Not Specified")
 data["job_type"] = data.get("job_type", pd.Series()).fillna(data["keywords"].str.extract(r'(Remote|Hybrid|Freelance|On-site|Full-Time|Part-Time|Contract)', expand=False)).fillna("Unknown")
@@ -154,7 +139,6 @@ if submit:
 
             keyword_results["title"] = keyword_results["title"].fillna("N/A")
             keyword_results["title_highlighted"] = keyword_results["title"].astype(str).apply(highlight_keywords)
-            keyword_results["company"] = keyword_results["company"].astype(str).apply(highlight_keywords)
             keyword_results["keywords"] = keyword_results["keywords"].astype(str).apply(highlight_keywords)
 
             st.success("✅ Top Matching Job Roles:")
@@ -162,8 +146,7 @@ if submit:
                 st.markdown(f"""
                 <div style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
                     <h4>🔹 {row['title_highlighted']}</h4>
-                    <p><strong>Company:</strong> {row['company']} &nbsp;&nbsp; 
-                       <strong>Location:</strong> {row['country']} &nbsp;&nbsp; 
+                    <p><strong>Location:</strong> {row['country']} &nbsp;&nbsp; 
                        <strong>Date:</strong> {pd.to_datetime(row['published_date']).date() if pd.notna(row['published_date']) else 'N/A'} &nbsp;&nbsp; 
                        <strong>Experience:</strong> {row['experience']} &nbsp;&nbsp;
                        <strong>Type:</strong> {row['job_type']}</p>
@@ -183,6 +166,6 @@ if submit:
                 plt.ylabel("Job Count")
                 st.pyplot(fig)
 
-            download_cols = ["Rank", "title", "processed_text", "company", "country", "published_date", "experience", "job_type", "Similarity (%)"]
+            download_cols = ["Rank", "title", "processed_text", "country", "published_date", "experience", "job_type", "Similarity (%)"]
             csv_data = keyword_results[download_cols].to_csv(index=False)
             st.download_button("📥 Download Recommendations as CSV", csv_data, "job_recommendations.csv", "text/csv")
