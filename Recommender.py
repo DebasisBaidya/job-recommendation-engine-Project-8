@@ -44,7 +44,7 @@ if "processed_text" not in data.columns:
     st.warning("🛠 'processed_text' column missing. Using 'keywords' as fallback.")
     data["processed_text"] = data["keywords"].fillna("").astype(str)
 
-company_names = ["TechNova", "DataX", "InnoCore", "SoftWave", "BrightPath", "NextEdge"]
+company_names = ["Remote", "Hybrid", "Freelance", "On-site", "Full-Time", "Part-Time", "Contract"]
 if "company" not in data.columns or data["company"].isna().all():
     data["company"] = [random.choice(company_names) for _ in range(len(data))]
 else:
@@ -167,7 +167,7 @@ if submit:
                     st.markdown(f"""
                     <div style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
                         <h4>🔹 {row['title_highlighted']}</h4>
-                        <p><strong>Company:</strong> {row['company']} &nbsp;&nbsp; 
+                        <p><strong>Job Type:</strong> {row['company']} &nbsp;&nbsp; 
                            <strong>Location:</strong> {row['country']} &nbsp;&nbsp; 
                            <strong>Date:</strong> {pd.to_datetime(row['published_date']).date() if pd.notna(row['published_date']) else 'N/A'} &nbsp;&nbsp; 
                            <strong>Experience:</strong> {row['experience']} &nbsp;&nbsp;
