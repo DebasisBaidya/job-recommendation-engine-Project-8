@@ -44,11 +44,26 @@ if "processed_text" not in data.columns:
     st.warning("🛠 'processed_text' column missing. Using 'keywords' as fallback.")
     data["processed_text"] = data["keywords"].fillna("").astype(str)
 
-company_names = ["Remote", "Hybrid", "Freelance", "On-site", "Full-Time", "Part-Time", "Contract"]
+company_names = ["RemoteHires", "TalentBridge", "CodeCrafters", "InnovateX", "NextWave"]
+def generate_relevant_company(keywords):
+    keywords = str(keywords).lower()
+    if "remote" in keywords:
+        return "RemoteHires"
+    elif "hybrid" in keywords:
+        return "TalentBridge"
+    elif "freelance" in keywords:
+        return "CodeCrafters"
+    elif "data" in keywords or "analytics" in keywords:
+        return "InnovateX"
+    elif "developer" in keywords or "software" in keywords:
+        return "NextWave"
+    else:
+        return random.choice(company_names)
+
 if "company" not in data.columns or data["company"].isna().all():
-    data["company"] = [random.choice(company_names) for _ in range(len(data))]
+    data["company"] = data["keywords"].apply(generate_relevant_company)
 else:
-    data["company"] = data["company"].fillna(random.choice(company_names))
+    data["company"] = data["company"].fillna(data["keywords"].apply(generate_relevant_company))
 
 if "location" not in data.columns:
     data["location"] = "Unknown"
@@ -71,8 +86,12 @@ locations = sorted(data["country"].replace("", np.nan).dropna().unique())
 job_types = ["Remote", "On-site", "Hybrid", "Freelance", "Full-Time", "Part-Time", "Contract"]
 
 # ---------------------- UI Header ----------------------
-st.markdown("<h1 style='text-align: center;'>🔍 AI-Powered Job Role Recommender</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Get top job suggestions based on your description, with experience, location, and job type filters.</p>", unsafe_allow_html=True)
+st.markdown("""
+    <div style='text-align: center;'>
+        <h1>🔍 AI-Powered Job Role Recommender</h1>
+        <p>Get top job suggestions based on your description, with experience, location, and job type filters.</p>
+    </div>
+""", unsafe_allow_html=True)
 
 # ---------------------- Input Form ----------------------
 with st.form(key="recommend_form"):
@@ -125,13 +144,6 @@ if submit:
                     if not alt_countries.empty:
                         alt_country_list = ", ".join(alt_countries.index.tolist())
                         st.info(f"📍 No jobs found in selected country/countries, but available in: {alt_country_list}")
-                        fig, ax = plt.subplots()
-                        alt_countries.plot(kind='bar', ax=ax, color='skyblue')
-                        for i, (label, value) in enumerate(alt_countries.items()):
-                            ax.text(i, value + 0.1, str(value), ha='center', fontweight='bold')
-                        plt.title("Top 5 Available Countries")
-                        plt.ylabel("Job Count")
-                        st.pyplot(fig)
                         keyword_results = keyword_results[keyword_results["country"].isin(alt_countries.index)]
                         location_displayed = True
                 else:
