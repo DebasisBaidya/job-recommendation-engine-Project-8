@@ -44,11 +44,11 @@ if "processed_text" not in data.columns:
     st.warning("🛠 'processed_text' column missing. Using 'keywords' as fallback.")
     data["processed_text"] = data["keywords"].fillna("").astype(str)
 
+company_names = ["TechNova", "DataX", "InnoCore", "SoftWave", "BrightPath", "NextEdge"]
 if "company" not in data.columns or data["company"].isna().all():
-    company_names = ["TechNova", "DataX", "InnoCore", "SoftWave", "BrightPath", "NextEdge"]
     data["company"] = [random.choice(company_names) for _ in range(len(data))]
 else:
-    data["company"] = data["company"].fillna(random.choice(["TechNova", "DataX", "InnoCore", "SoftWave", "BrightPath", "NextEdge"]))
+    data["company"] = data["company"].fillna(random.choice(company_names))
 
 if "location" not in data.columns:
     data["location"] = "Unknown"
@@ -105,33 +105,24 @@ if submit:
         else:
             results = data.iloc[indices[0]].copy()
             results["Similarity (%)"] = [round((1 - d) * 100, 2) for d in distances[0]]
-
             keyword_results = results.copy()
 
             if exp_filter:
                 filtered = keyword_results[keyword_results["experience"].isin(exp_filter)]
-                if filtered.empty:
-                    st.info("📍 No jobs found with selected experience level(s), showing all experience levels instead.")
-                else:
+                if not filtered.empty:
                     keyword_results = filtered
 
-            if job_type_filter:
-                if "job_type" in keyword_results.columns:
-                    filtered = keyword_results[keyword_results["job_type"].isin(job_type_filter)]
-                    if filtered.empty:
-                        st.info("📍 No jobs found with selected job type(s), showing all job types instead.")
-                    else:
-                        keyword_results = filtered
+            if job_type_filter and "job_type" in keyword_results.columns:
+                filtered = keyword_results[keyword_results["job_type"].isin(job_type_filter)]
+                if not filtered.empty:
+                    keyword_results = filtered
 
             location_displayed = False
             if location_filter:
                 location_matched = keyword_results[keyword_results["country"].isin(location_filter)]
                 if location_matched.empty:
                     alt_countries = keyword_results["country"].value_counts().head(5)
-                    if alt_countries.empty:
-                        st.warning("😕 No alternate countries with job availability found.")
-                        keyword_results = pd.DataFrame()
-                    else:
+                    if not alt_countries.empty:
                         alt_country_list = ", ".join(alt_countries.index.tolist())
                         st.info(f"📍 No jobs found in selected country/countries, but available in: {alt_country_list}")
                         fig, ax = plt.subplots()
@@ -164,9 +155,12 @@ if submit:
                         text = pattern.sub(r"<mark><b>\1</b></mark>", text)
                     return text
 
-                keyword_results["title_highlighted"] = keyword_results["processed_text"].apply(highlight_keywords)
-                keyword_results["company"] = keyword_results["company"].astype(str).apply(highlight_keywords)
-                keyword_results["keywords"] = keyword_results["keywords"].astype(str).apply(highlight_keywords)
+                if isinstance(keyword_results["processed_text"], pd.Series):
+                    keyword_results["title_highlighted"] = keyword_results["processed_text"].astype(str).apply(highlight_keywords)
+                if isinstance(keyword_results["company"], pd.Series):
+                    keyword_results["company"] = keyword_results["company"].astype(str).apply(highlight_keywords)
+                if isinstance(keyword_results["keywords"], pd.Series):
+                    keyword_results["keywords"] = keyword_results["keywords"].astype(str).apply(highlight_keywords)
 
                 st.success("✅ Top Matching Job Roles:")
                 for _, row in keyword_results.iterrows():
