@@ -10,7 +10,7 @@ import random
 from io import BytesIO
 from fpdf import FPDF
 
-# Set Streamlit page configuration for centered layout and custom title
+# Set Streamlit page config for centered layout and custom title
 st.set_page_config(page_title="Job Role Recommender", layout="centered")
 
 @st.cache_resource
@@ -139,10 +139,9 @@ def generate_pdf(dataframe):
         pdf.cell(0, 6, f"Similarity: {row['Similarity (%)']}%", ln=True)
         pdf.ln(4)
 
-    pdf_output = BytesIO()
-    pdf.output(pdf_output)
-    pdf_output.seek(0)
-    return pdf_output
+    # Get PDF as bytes string and wrap in BytesIO for Streamlit download
+    pdf_bytes = pdf.output(dest='S').encode('latin1')
+    return BytesIO(pdf_bytes)
 
 # Process form submission
 if submit:
@@ -254,6 +253,13 @@ if submit:
 
             # Generate PDF from filtered results and provide a centered download button
             pdf_bytes = generate_pdf(keyword_results)
-            st.markdown("<div style='text-align: center; margin-top: 20px;'>", unsafe_allow_html=True)
-            st.download_button("📥 Download Recommendations as PDF", pdf_bytes, "job_recommendations.pdf", "application/pdf")
-            st.markdown("</div>", unsafe_allow_html=True)
+
+            # Use Streamlit columns to center the download button horizontally
+            col1, col2, col3 = st.columns([1, 2, 1])
+            with col2:
+                st.download_button(
+                    label="📥 Download Recommendations as PDF",
+                    data=pdf_bytes,
+                    file_name="job_recommendations.pdf",
+                    mime="application/pdf"
+                )
