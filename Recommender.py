@@ -47,15 +47,21 @@ if "processed_text" not in data.columns:
 if "company" not in data.columns or data["company"].isna().all():
     company_names = ["TechNova", "DataX", "InnoCore", "SoftWave", "BrightPath", "NextEdge"]
     data["company"] = [random.choice(company_names) for _ in range(len(data))]
+else:
+    data["company"] = data["company"].fillna(random.choice(["TechNova", "DataX", "InnoCore", "SoftWave", "BrightPath", "NextEdge"]))
 
 if "location" not in data.columns:
     data["location"] = "Unknown"
 
 if "experience" not in data.columns:
     data["experience"] = data["keywords"].str.extract(r'(Fresher|Experienced)', expand=False).fillna("Not Specified")
+else:
+    data["experience"] = data["experience"].fillna(data["keywords"].str.extract(r'(Fresher|Experienced)', expand=False)).fillna("Not Specified")
 
 if "job_type" not in data.columns:
     data["job_type"] = data["keywords"].str.extract(r'(Remote|Hybrid|Freelance|On-site|Full-Time|Part-Time|Contract)', expand=False).fillna("Unknown")
+else:
+    data["job_type"] = data["job_type"].fillna(data["keywords"].str.extract(r'(Remote|Hybrid|Freelance|On-site|Full-Time|Part-Time|Contract)', expand=False)).fillna("Unknown")
 
 if "country" not in data.columns:
     data["country"] = "Unknown"
@@ -66,7 +72,7 @@ job_types = ["Remote", "On-site", "Hybrid", "Freelance", "Full-Time", "Part-Time
 
 # ---------------------- UI Header ----------------------
 st.markdown("<h1 style='text-align: center;'>🔍 AI-Powered Job Role Recommender</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Get top job suggestions based on your description, with experience, location, and work type filters.</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Get top job suggestions based on your description, with experience, location, and job type filters.</p>", unsafe_allow_html=True)
 
 # ---------------------- Input Form ----------------------
 with st.form(key="recommend_form"):
@@ -79,7 +85,7 @@ with st.form(key="recommend_form"):
     st.markdown("### 🌍 Select Country/Countries (Optional)")
     location_filter = st.multiselect("", locations)
 
-    st.markdown("### 🧑‍💻 Select Work Type(s) (Optional)")
+    st.markdown("### 🧑‍💻 Select Job Type(s) (Optional)")
     job_type_filter = st.multiselect("", job_types)
 
     submit = st.form_submit_button("🔎 Recommend Jobs")
@@ -103,11 +109,19 @@ if submit:
             keyword_results = results.copy()
 
             if exp_filter:
-                keyword_results = keyword_results[keyword_results["experience"].isin(exp_filter)]
+                filtered = keyword_results[keyword_results["experience"].isin(exp_filter)]
+                if filtered.empty:
+                    st.info("📍 No jobs found with selected experience level(s), showing all experience levels instead.")
+                else:
+                    keyword_results = filtered
 
             if job_type_filter:
                 if "job_type" in keyword_results.columns:
-                    keyword_results = keyword_results[keyword_results["job_type"].isin(job_type_filter)]
+                    filtered = keyword_results[keyword_results["job_type"].isin(job_type_filter)]
+                    if filtered.empty:
+                        st.info("📍 No jobs found with selected job type(s), showing all job types instead.")
+                    else:
+                        keyword_results = filtered
 
             location_displayed = False
             if location_filter:
@@ -169,17 +183,16 @@ if submit:
                     """, unsafe_allow_html=True)
 
                 st.markdown("---")
-                if not location_displayed:
-                    top_countries = keyword_results["country"].value_counts().head(5)
-                    if not top_countries.empty:
-                        st.markdown("### 🌎 Top 5 Available Countries")
-                        fig, ax = plt.subplots()
-                        top_countries.plot(kind='bar', ax=ax, color='salmon')
-                        for i, (label, value) in enumerate(top_countries.items()):
-                            ax.text(i, value + 0.1, str(value), ha='center', fontweight='bold')
-                        plt.title("Top 5 Available Countries")
-                        plt.ylabel("Job Count")
-                        st.pyplot(fig)
+                top_countries = keyword_results["country"].value_counts().head(5)
+                if not top_countries.empty:
+                    st.markdown("### 🌎 Top 5 Available Countries")
+                    fig, ax = plt.subplots()
+                    top_countries.plot(kind='bar', ax=ax, color='salmon')
+                    for i, (label, value) in enumerate(top_countries.items()):
+                        ax.text(i, value + 0.1, str(value), ha='center', fontweight='bold')
+                    plt.title("Top 5 Available Countries")
+                    plt.ylabel("Job Count")
+                    st.pyplot(fig)
 
                 download_cols = ["Rank", "processed_text", "company", "country", "published_date", "experience", "job_type", "Similarity (%)"]
                 csv_data = keyword_results[download_cols].to_csv(index=False)
