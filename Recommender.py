@@ -115,31 +115,24 @@ with st.form(key="recommend_form"):
     with col3:
         job_type_filter = st.multiselect("🧑‍💻 Job Type(s)", job_types)
 
-    # Use three columns to center the buttons horizontally
-    left_col, center_col, right_col = st.columns([1, 2, 1])
+    # Center the two buttons side-by-side with flexbox container
+    st.markdown(
+        """
+        <div style="
+            display: flex;
+            justify-content: center;  /* center horizontally */
+            align-items: center;      /* center vertically */
+            gap: 20px;                /* space between buttons */
+            margin-top: 15px;
+        ">
+        """,
+        unsafe_allow_html=True,
+    )
 
-    with center_col:
-        # Use a flexbox container to align buttons side-by-side and center vertically & horizontally
-        st.markdown(
-            """
-            <div style="
-                display: flex; 
-                justify-content: center;  /* center horizontally */
-                align-items: center;      /* center vertically */
-                gap: 20px;                /* space between buttons */
-                margin-top: 10px;
-            ">
-            """,
-            unsafe_allow_html=True,
-        )
+    submit = st.form_submit_button("🔎 Recommend Jobs")
+    reset = st.form_submit_button("♻️ Reset All")
 
-        # Submit button triggers job recommendations
-        submit = st.form_submit_button("🔎 Recommend Jobs")
-
-        # Reset button clears inputs and results
-        reset = st.form_submit_button("♻️ Reset All")
-
-        st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     # Update session state on submit or reset
     if submit:
@@ -148,11 +141,10 @@ with st.form(key="recommend_form"):
     if reset:
         st.session_state.job_desc = ""
         st.session_state.keyword_results = None
-        # Just rerun app to reset UI (no message needed)
+        # Just rerun app to reset UI silently
         try:
             st.experimental_rerun()
         except AttributeError:
-            # If rerun not supported, just stop execution silently
             st.stop()
 
 def generate_pdf(dataframe):
