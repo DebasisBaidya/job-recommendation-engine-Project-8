@@ -117,7 +117,7 @@ with st.form(key="recommend_form"):
         job_type_filter = st.multiselect("🧑‍💻 Job Type(s)", job_types)
 
     # Use 3 columns: left and right empty, middle with buttons side-by-side
-    left, center, right = st.columns([1, 2, 1])
+    left, center, right = st.columns([1, 4 , 1])
     with center:
         btn_col1, btn_col2 = st.columns(2, gap="small")
         with btn_col1:
