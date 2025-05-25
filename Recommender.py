@@ -8,26 +8,26 @@ from sklearn.neighbors import NearestNeighbors
 from io import BytesIO
 from fpdf import FPDF
 
-# Set page title and layout configuration for better UX
+# Set page title and center layout for better appearance
 st.set_page_config(page_title="Job Role Recommender", layout="centered")
 
 @st.cache_resource
 def load_resources():
     """
-    Load model, vectorizer, and job data from disk.
+    Load the model, vectorizer, and job data from files.
     Use caching to avoid reloading on every interaction.
     """
     try:
         with open("job_recommender_model.pkl", "rb") as f:
             model = pickle.load(f)
     except Exception:
-        model = None  # Handle missing or corrupted model gracefully
+        model = None  # If model file is missing or corrupted, set to None
 
     try:
         with open("vectorizer.pkl", "rb") as f:
             vectorizer = pickle.load(f)
     except Exception:
-        vectorizer = None  # Handle missing or corrupted vectorizer gracefully
+        vectorizer = None  # If vectorizer file is missing or corrupted, set to None
 
     try:
         data = pd.read_csv("job_data.csv", parse_dates=["published_date"])
@@ -36,7 +36,7 @@ def load_resources():
 
     return model, vectorizer, data
 
-# Load all resources once at app startup
+# Load resources once at app start
 model, vectorizer, data = load_resources()
 
 # Stop app if job data is missing or empty
@@ -44,7 +44,7 @@ if data.empty:
     st.error("❌ Job data not found or empty.")
     st.stop()
 
-# Fallbacks for missing columns in the dataset
+# Prepare dataset columns with safe defaults if missing
 if "processed_text" not in data.columns:
     data["processed_text"] = data["keywords"].fillna("").astype(str)
 
@@ -66,7 +66,7 @@ data["job_type"] = data.get("job_type", pd.Series()).fillna(
 
 data["country"] = data.get("country", "Unknown")
 
-# Define filter options for UI dropdowns
+# Define filter options for dropdowns
 experience_levels = ["Fresher", "Experienced"]
 locations = sorted(data["country"].replace("", np.nan).dropna().unique())
 job_types = ["Remote", "On-site", "Hybrid", "Freelance", "Full-Time", "Part-Time", "Contract"]
@@ -79,7 +79,7 @@ st.markdown("""
     </div>
 """, unsafe_allow_html=True)
 
-# Initialize session state variables to persist data across reruns
+# Initialize session state variables to persist input and results across reruns
 if "job_desc" not in st.session_state:
     st.session_state.job_desc = ""
 
@@ -88,7 +88,7 @@ if "keyword_results" not in st.session_state:
 
 # --- Main Input Form ---
 with st.form(key="recommend_form"):
-    # Label and example text for job description input, nicely styled and centered
+    # Label and example text above the input box, nicely styled and centered
     st.markdown("""
     <div style='text-align: center; margin-bottom: 2px;'>
         <h3 style="color: #333; font-size: 18px;">📝 Enter Job Description</h3>
@@ -98,7 +98,7 @@ with st.form(key="recommend_form"):
     </div>
     """, unsafe_allow_html=True)
 
-    # Text area for user to enter job description
+    # Text area for user input, pre-filled from session state
     job_desc = st.text_area(
         "", 
         placeholder="Describe the job role you're looking for...", 
@@ -115,22 +115,28 @@ with st.form(key="recommend_form"):
     with col3:
         job_type_filter = st.multiselect("🧑‍💻 Job Type(s)", job_types)
 
-    # Create three columns for buttons: left & right empty, center for buttons
-    btn_col_left, btn_col_center, btn_col_right = st.columns([1, 2, 1])
+    # Use three columns to center the buttons horizontally
+    left_col, center_col, right_col = st.columns([1, 2, 1])
 
-    with btn_col_center:
-        # Use flexbox div to center buttons horizontally with gap between them
+    with center_col:
+        # Use a flexbox container to align buttons side-by-side and center vertically & horizontally
         st.markdown(
             """
-            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-top: 10px;">
+            <div style="
+                display: flex; 
+                justify-content: center;  /* center horizontally */
+                align-items: center;      /* center vertically */
+                gap: 20px;                /* space between buttons */
+                margin-top: 10px;
+            ">
             """,
             unsafe_allow_html=True,
         )
 
-        # Submit button to trigger job recommendations
+        # Submit button triggers job recommendations
         submit = st.form_submit_button("🔎 Recommend Jobs")
 
-        # Reset button to clear inputs and results
+        # Reset button clears inputs and results
         reset = st.form_submit_button("♻️ Reset All")
 
         st.markdown("</div>", unsafe_allow_html=True)
@@ -138,12 +144,19 @@ with st.form(key="recommend_form"):
     # Update session state on submit or reset
     if submit:
         st.session_state.job_desc = job_desc
+
     if reset:
-        # Clear job description and previous results from session state
+        # Clear session state variables to reset form and results
         st.session_state.job_desc = ""
         st.session_state.keyword_results = None
-        # Rerun the app to reset UI and clear form inputs
-        st.experimental_rerun()
+
+        # Try to rerun app if supported (Streamlit >=1.10)
+        try:
+            st.experimental_rerun()
+        except AttributeError:
+            # If rerun not available, ask user to refresh page manually
+            st.warning("Please refresh the page to reset the form.")
+            st.stop()
 
 def generate_pdf(dataframe):
     """
@@ -193,7 +206,7 @@ def strip_html_tags(text):
 
 def process_and_display_results():
     """
-    Core function to process user input, perform similarity search,
+    Process user input, perform similarity search,
     apply filters, and display results with highlights and charts.
     """
     # Validate user input is not empty
@@ -365,7 +378,7 @@ def process_and_display_results():
             unsafe_allow_html=True,
         )
 
-# If results exist in session state, display them
+# Display results if available in session state
 if st.session_state.keyword_results is not None:
     process_and_display_results()
 # Also process results immediately after submit button pressed
