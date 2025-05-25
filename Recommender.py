@@ -61,7 +61,7 @@ if "country" not in data.columns:
     data["country"] = "Unknown"
 
 experience_levels = ["Fresher", "Experienced"]
-locations = sorted(data["country"].dropna().unique())
+locations = sorted(data["country"].replace("", np.nan).dropna().unique())
 job_types = ["Remote", "On-site", "Hybrid", "Freelance", "Full-Time", "Part-Time", "Contract"]
 
 # ---------------------- UI Header ----------------------
@@ -126,7 +126,7 @@ if submit:
                 else:
                     results = location_matched
 
-            if job_type_filter:
+            if job_type_filter and "job_type" in results.columns:
                 results = results[results["job_type"].isin(job_type_filter)]
 
             if results.empty:
