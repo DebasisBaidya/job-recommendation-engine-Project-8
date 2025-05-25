@@ -115,14 +115,14 @@ with st.form(key="recommend_form"):
     with col3:
         job_type_filter = st.multiselect("🧑‍💻 Job Type(s)", job_types)
 
-    # Center the two buttons side-by-side with flexbox container
+    # Flex container for buttons: side-by-side and horizontally centered
     st.markdown(
         """
         <div style="
             display: flex;
             justify-content: center;  /* center horizontally */
             align-items: center;      /* center vertically */
-            gap: 20px;                /* space between buttons */
+            gap: 16px;                /* space between buttons */
             margin-top: 15px;
         ">
         """,
