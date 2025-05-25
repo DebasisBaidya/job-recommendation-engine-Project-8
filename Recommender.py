@@ -146,16 +146,13 @@ with st.form(key="recommend_form"):
         st.session_state.job_desc = job_desc
 
     if reset:
-        # Clear session state variables to reset form and results
         st.session_state.job_desc = ""
         st.session_state.keyword_results = None
-
-        # Try to rerun app if supported (Streamlit >=1.10)
+        # Just rerun app to reset UI (no message needed)
         try:
             st.experimental_rerun()
         except AttributeError:
-            # If rerun not available, ask user to refresh page manually
-            st.warning("Please refresh the page to reset the form.")
+            # If rerun not supported, just stop execution silently
             st.stop()
 
 def generate_pdf(dataframe):
