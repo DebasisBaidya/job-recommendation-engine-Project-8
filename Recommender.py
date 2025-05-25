@@ -56,6 +56,9 @@ if "category" not in data.columns:
 if "job_type" not in data.columns:
     data["job_type"] = data["keywords"].str.extract(r'(Remote|Hybrid|Freelance|On-site|Full-Time|Part-Time|Contract)', expand=False).fillna("Unknown")
 
+if "country" not in data.columns:
+    data["country"] = "Unknown"
+
 # Get unique dropdown options
 categories = sorted(data["category"].dropna().unique())
 locations = sorted(data["country"].dropna().unique())
@@ -100,17 +103,27 @@ if submit:
         if job_category:
             results = results[results["category"] == job_category]
 
-        original_count = len(results)
-
         if location_filter:
             filtered = results[results["country"] == location_filter]
             if filtered.empty:
-                st.info(f"📍 No exact match for selected location '{location_filter}'. Showing results from other countries.")
+                alt_countries = results["country"].unique()
+                if len(alt_countries) > 0:
+                    st.info(f"📍 No jobs found in '{location_filter}', but available in: {', '.join(alt_countries)}")
+                else:
+                    st.warning("😕 No matching jobs found in any country.")
             else:
                 results = filtered
 
         if job_type_filter:
-            results = results[results["job_type"] == job_type_filter]
+            filtered_type = results[results["job_type"] == job_type_filter]
+            if filtered_type.empty:
+                alt_types = results["job_type"].unique()
+                if len(alt_types) > 0:
+                    st.info(f"💼 No jobs found for job type '{job_type_filter}', but available types: {', '.join(alt_types)}")
+                else:
+                    st.warning("😕 No matching job types found.")
+            else:
+                results = filtered_type
 
         # Show results
         if results.empty:
@@ -140,30 +153,11 @@ if submit:
                     <h4>🔹 {row['title_highlighted']}</h4>
                     <p><strong>Company:</strong> {row['company']} &nbsp;&nbsp; 
                        <strong>Location:</strong> {row['country']} &nbsp;&nbsp; 
-                       <strong>Date:</strong> {row['published_date'].date() if pd.notna(row['published_date']) else 'N/A'} &nbsp;&nbsp; 
+                       <strong>Date:</strong> {pd.to_datetime(row['published_date']).date() if pd.notna(row['published_date']) else 'N/A'} &nbsp;&nbsp; 
                        <strong>Category:</strong> {row['category']} &nbsp;&nbsp;
                        <strong>Type:</strong> {row['job_type']}</p>
-                    <p><strong>Similarity Score:</strong> {row['Similarity (%)']}%</p>
                 </div>
                 """, unsafe_allow_html=True)
-
-            # Similarity Score Chart
-            st.markdown("### 📊 Similarity Score Chart")
-            fig, ax = plt.subplots()
-            ax.bar(results["Rank"], results["Similarity (%)"], color="#4C9F70")
-            ax.set_xlabel("Rank")
-            ax.set_ylabel("Similarity (%)")
-            ax.set_title("Top Job Similarities")
-            st.pyplot(fig)
-
-            # Job Count by Country Chart
-            st.markdown("### 🌍 Top 5 Countries by Available Jobs")
-            top_countries = data['country'].value_counts().nlargest(5)
-            fig2, ax2 = plt.subplots()
-            ax2.bar(top_countries.index, top_countries.values, color="#F4A261")
-            ax2.set_ylabel("Number of Jobs")
-            ax2.set_title("Top 5 Countries with Most Jobs")
-            st.pyplot(fig2)
 
             # Download button
             download_cols = ["Rank", "processed_text", "company", "country", "published_date", "category", "job_type", "Similarity (%)"]
