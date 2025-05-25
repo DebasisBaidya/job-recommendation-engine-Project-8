@@ -11,6 +11,7 @@ import random
 st.set_page_config(page_title="Job Role Recommender", layout="centered")
 
 @st.cache_resource
+
 def load_resources():
     try:
         with open("job_recommender_model.pkl", "rb") as f:
@@ -45,7 +46,6 @@ if "title" not in data.columns:
     st.warning("🛠 'title' column missing. Using first 5 words of processed_text as fallback.")
     data["title"] = data["processed_text"].apply(lambda x: " ".join(x.split()[:5]) if isinstance(x, str) else "N/A")
 
-data["company"] = ""
 data["location"] = data.get("location", "Unknown")
 data["experience"] = data.get("experience", pd.Series()).fillna(data["keywords"].str.extract(r'(Fresher|Experienced)', expand=False)).fillna("Not Specified")
 data["job_type"] = data.get("job_type", pd.Series()).fillna(data["keywords"].str.extract(r'(Remote|Hybrid|Freelance|On-site|Full-Time|Part-Time|Contract)', expand=False)).fillna("Unknown")
@@ -63,17 +63,20 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 with st.form(key="recommend_form"):
-    st.markdown("### 📝 Job Description")
-    job_desc = st.text_area("", placeholder="Describe the job role you're looking for...", height=150)
+    st.markdown("""
+    <div style='text-align: center;'>
+        <h3>📝 Job Description</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    job_desc = st.text_area("", placeholder="Describe the job role you're looking for...", height=100)
 
-    st.markdown("### 👤 Select Experience Level(s) (Optional)")
-    exp_filter = st.multiselect("", experience_levels)
-
-    st.markdown("### 🌍 Select Country/Countries (Optional)")
-    location_filter = st.multiselect("", locations)
-
-    st.markdown("### 🧑‍💻 Select Job Type(s) (Optional)")
-    job_type_filter = st.multiselect("", job_types)
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        exp_filter = st.multiselect("👤 Experience Level(s) (Optional)", experience_levels)
+    with col2:
+        location_filter = st.multiselect("🌍 Country/Countries (Optional)", locations)
+    with col3:
+        job_type_filter = st.multiselect("🧑‍💻 Job Type(s) (Optional)", job_types)
 
     submit = st.form_submit_button("🔎 Recommend Jobs")
 
