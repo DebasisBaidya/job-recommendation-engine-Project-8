@@ -2,46 +2,59 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import pickle
+import re
+import matplotlib.pyplot as plt
 from sklearn.neighbors import NearestNeighbors
 from sklearn.feature_extraction.text import TfidfVectorizer
-import matplotlib.pyplot as plt
-import re
 
 # ---------------------- Page Setup ----------------------
 st.set_page_config(page_title="Job Role Recommender", layout="centered")
 
-# ---------------------- Load Resources ----------------------
+# ---------------------- Load Model, Vectorizer, and Data ----------------------
 @st.cache_resource
 def load_resources():
+    # Load the trained model
     try:
         with open("job_recommender_model.pkl", "rb") as f:
             model = pickle.load(f)
     except:
         model = None
 
+    # Load the TF-IDF vectorizer
     try:
         with open("vectorizer.pkl", "rb") as f:
             vectorizer = pickle.load(f)
     except:
         vectorizer = None
 
+    # Load the job data
     try:
         data = pd.read_csv("job_data.csv", parse_dates=["published_date"])
+
+        # Generate 'processed_text' if missing
+        if "processed_text" not in data.columns:
+            def clean_text(text):
+                text = re.sub(r"[^a-zA-Z\s]", "", str(text))  # remove punctuation/numbers
+                text = re.sub(r"\s+", " ", text)              # normalize spaces
+                return text.lower().strip()                   # lowercase
+            data["processed_text"] = data["title"].apply(clean_text)
+
     except:
         data = pd.DataFrame()
 
     return model, vectorizer, data
 
+# Load all necessary components
 model, vectorizer, data = load_resources()
 
 # ---------------------- Error Handling ----------------------
-if data.empty or 'processed_text' not in data.columns:
-    st.error("❌ Job data not found or is empty or missing 'processed_text' column.")
+if data.empty:
+    st.error("❌ Job data not found or is empty.")
     st.stop()
 
 # ---------------------- UI Header ----------------------
 st.markdown("<h1 style='text-align: center;'>🔍 AI-Powered Job Role Recommender</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center;'>Enter a job description and get AI-powered suggestions with similarity scores and highlights.</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center;'>Enter a job description and get personalized suggestions with similarity scores and keyword highlights.</p>", unsafe_allow_html=True)
 
 # ---------------------- Job Input Form ----------------------
 categories = sorted(data["category"].dropna().unique())
@@ -56,12 +69,6 @@ with st.form(key="recommend_form"):
 
     submit = st.form_submit_button("🔎 Recommend Jobs")
 
-# ---------------------- Preprocessing Function ----------------------
-def clean_text(text):
-    text = re.sub(r"[^a-zA-Z\s]", "", text)  # Remove non-alphabetic
-    text = re.sub(r"\s+", " ", text)         # Remove extra whitespace
-    return text.lower().strip()
-
 # ---------------------- On Submit ----------------------
 if submit:
     if not job_desc.strip():
@@ -69,15 +76,23 @@ if submit:
     elif model is None or vectorizer is None:
         st.error("⚠️ Model or vectorizer not loaded.")
     else:
-        # Preprocess and vectorize user input
-        cleaned_input = clean_text(job_desc)
-        user_vec = vectorizer.transform([cleaned_input])
-        distances, indices = model.kneighbors(user_vec, n_neighbors=6)
+        # Clean user input same as training
+        def clean_text(text):
+            text = re.sub(r"[^a-zA-Z\s]", "", str(text))
+            text = re.sub(r"\s+", " ", text)
+            return text.lower().strip()
 
+        cleaned_input = clean_text(job_desc)
+
+        # Transform user input using vectorizer
+        user_vec = vectorizer.transform([cleaned_input])
+        distances, indices = model.kneighbors(user_vec, n_neighbors=5)
+
+        # Extract recommendations
         results = data.iloc[indices[0]].copy()
         results["Similarity (%)"] = [round((1 - d) * 100, 2) for d in distances[0]]
 
-        # Filter category (optional)
+        # Filter by category if selected
         if job_category:
             results = results[results["category"] == job_category]
 
@@ -90,25 +105,26 @@ if submit:
 
             # ------------------ Keyword Highlighting ------------------
             def extract_keywords(text):
-                return set(re.findall(r"\b\w{4,}\b", text.lower()))
+                words = re.findall(r"\b\w{4,}\b", text.lower())
+                return set(words)
 
             keywords = extract_keywords(job_desc)
 
-            def highlight_keywords(title):
+            def highlight_keywords(text):
                 for word in keywords:
-                    title = re.sub(f"(?i)\\b({word})\\b", r"<mark><b>\1</b></mark>", title)
-                return title
+                    text = re.sub(f"(?i)\\b({word})\\b", r"<mark><b>\1</b></mark>", text)
+                return text
 
             results["title_highlighted"] = results["title"].apply(highlight_keywords)
 
-            # ------------------ Display Table with Highlights ------------------
+            # ------------------ Display Cards ------------------
             st.success("✅ Top Matching Job Roles:")
             for i, row in results.iterrows():
                 st.markdown(f"""
-                <div style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                <div style="padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 12px; background-color: #f9f9f9;">
                     <h4>🔹 {row['title_highlighted']}</h4>
-                    <p><strong>Company:</strong> {row['company']} &nbsp;&nbsp; 
-                       <strong>Location:</strong> {row['location']} &nbsp;&nbsp; 
+                    <p><strong>Company:</strong> {row.get('company', 'N/A')} &nbsp;&nbsp; 
+                       <strong>Location:</strong> {row.get('location', 'N/A')} &nbsp;&nbsp; 
                        <strong>Date:</strong> {row['published_date'].date()} &nbsp;&nbsp; 
                        <strong>Category:</strong> {row['category']}</p>
                     <p><strong>Similarity Score:</strong> {row['Similarity (%)']}%</p>
@@ -124,7 +140,7 @@ if submit:
             ax.set_title("Top 5 Job Role Similarities")
             st.pyplot(fig)
 
-            # ------------------ Download Button ------------------
+            # ------------------ Download as CSV ------------------
             download_cols = ["Rank", "title", "company", "location", "published_date", "category", "Similarity (%)"]
             csv_data = results[download_cols].to_csv(index=False)
             st.download_button("📥 Download Recommendations as CSV", csv_data, "job_recommendations.csv", "text/csv")
