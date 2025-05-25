@@ -40,7 +40,6 @@ if data.empty:
     st.error("❌ Job data not found or is empty.")
     st.stop()
 
-# Ensure necessary columns
 if "processed_text" not in data.columns:
     st.warning("🛠 'processed_text' column missing. Using 'keywords' as fallback.")
     data["processed_text"] = data["keywords"].fillna("").astype(str)
@@ -77,8 +76,8 @@ with st.form(key="recommend_form"):
     st.markdown("### 👤 Select Experience Level(s) (Optional)")
     exp_filter = st.multiselect("", experience_levels)
 
-    st.markdown("### 🌍 Select Location (Optional)")
-    location_filter = st.selectbox("", [""] + locations)
+    st.markdown("### 🌍 Select Country/Countries (Optional)")
+    location_filter = st.multiselect("", locations)
 
     st.markdown("### 🧑‍💻 Select Work Type(s) (Optional)")
     job_type_filter = st.multiselect("", job_types)
@@ -95,62 +94,66 @@ if submit:
         user_vec = vectorizer.transform([job_desc])
         distances, indices = model.kneighbors(user_vec, n_neighbors=10)
 
-        results = data.iloc[indices[0]].copy()
-        results["Similarity (%)"] = [round((1 - d) * 100, 2) for d in distances[0]]
-
-        if exp_filter:
-            results = results[results["experience"].isin(exp_filter)]
-
-        location_matched = results[results["country"] == location_filter] if location_filter else results
-        if location_filter and location_matched.empty:
-            alt_countries = results["country"].value_counts().head(5)
-            st.info(f"📍 No jobs found in '{location_filter}', but available in:")
-            fig, ax = plt.subplots()
-            alt_countries.plot(kind='bar', ax=ax, color='skyblue')
-            for i, v in enumerate(alt_countries):
-                ax.text(i, v + 0.1, str(v), ha='center', fontweight='bold')
-            plt.title("Top 5 Available Countries")
-            plt.ylabel("Job Count")
-            st.pyplot(fig)
-            results = results[results["country"].isin(alt_countries.index)]
-        else:
-            results = location_matched
-
-        if job_type_filter:
-            results = results[results["job_type"].isin(job_type_filter)]
-
-        if results.empty:
+        if len(indices) == 0 or len(indices[0]) == 0:
             st.warning("😕 No matching jobs found.")
         else:
-            results = results.sort_values("Similarity (%)", ascending=False).reset_index(drop=True)
-            results.index += 1
-            results["Rank"] = results.index
+            results = data.iloc[indices[0]].copy()
+            results["Similarity (%)"] = [round((1 - d) * 100, 2) for d in distances[0]]
 
-            def extract_keywords(text):
-                return set(re.findall(r"\b\w{4,}\b", text.lower()))
+            if exp_filter:
+                results = results[results["experience"].isin(exp_filter)]
 
-            keywords = extract_keywords(job_desc)
+            if location_filter:
+                location_matched = results[results["country"].isin(location_filter)]
+                if location_matched.empty:
+                    alt_countries = results["country"].value_counts().head(5)
+                    st.info(f"📍 No jobs found in selected country/countries, but available in:")
+                    fig, ax = plt.subplots()
+                    alt_countries.plot(kind='bar', ax=ax, color='skyblue')
+                    for i, v in enumerate(alt_countries):
+                        ax.text(i, v + 0.1, str(v), ha='center', fontweight='bold')
+                    plt.title("Top 5 Available Countries")
+                    plt.ylabel("Job Count")
+                    st.pyplot(fig)
+                    results = results[results["country"].isin(alt_countries.index)]
+                else:
+                    results = location_matched
 
-            def highlight_keywords(title):
-                for word in keywords:
-                    title = re.sub(f"(?i)\\b({word})\\b", r"<mark><b>\\1</b></mark>", title)
-                return title
+            if job_type_filter:
+                results = results[results["job_type"].isin(job_type_filter)]
 
-            results["title_highlighted"] = results["processed_text"].apply(highlight_keywords)
+            if results.empty:
+                st.warning("😕 No matching jobs found.")
+            else:
+                results = results.sort_values("Similarity (%)", ascending=False).reset_index(drop=True)
+                results.index += 1
+                results["Rank"] = results.index
 
-            st.success("✅ Top Matching Job Roles:")
-            for _, row in results.iterrows():
-                st.markdown(f"""
-                <div style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
-                    <h4>🔹 {row['title_highlighted']}</h4>
-                    <p><strong>Company:</strong> {row['company']} &nbsp;&nbsp; 
-                       <strong>Location:</strong> {row['country']} &nbsp;&nbsp; 
-                       <strong>Date:</strong> {pd.to_datetime(row['published_date']).date() if pd.notna(row['published_date']) else 'N/A'} &nbsp;&nbsp; 
-                       <strong>Experience:</strong> {row['experience']} &nbsp;&nbsp;
-                       <strong>Type:</strong> {row['job_type']}</p>
-                </div>
-                """, unsafe_allow_html=True)
+                def extract_keywords(text):
+                    return set(re.findall(r"\b\w{4,}\b", text.lower()))
 
-            download_cols = ["Rank", "processed_text", "company", "country", "published_date", "experience", "job_type", "Similarity (%)"]
-            csv_data = results[download_cols].to_csv(index=False)
-            st.download_button("📥 Download Recommendations as CSV", csv_data, "job_recommendations.csv", "text/csv")
+                keywords = extract_keywords(job_desc)
+
+                def highlight_keywords(title):
+                    for word in keywords:
+                        title = re.sub(f"(?i)\\b({word})\\b", r"<mark><b>\\1</b></mark>", title)
+                    return title
+
+                results["title_highlighted"] = results["processed_text"].apply(highlight_keywords)
+
+                st.success("✅ Top Matching Job Roles:")
+                for _, row in results.iterrows():
+                    st.markdown(f"""
+                    <div style="padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;">
+                        <h4>🔹 {row['title_highlighted']}</h4>
+                        <p><strong>Company:</strong> {row['company']} &nbsp;&nbsp; 
+                           <strong>Location:</strong> {row['country']} &nbsp;&nbsp; 
+                           <strong>Date:</strong> {pd.to_datetime(row['published_date']).date() if pd.notna(row['published_date']) else 'N/A'} &nbsp;&nbsp; 
+                           <strong>Experience:</strong> {row['experience']} &nbsp;&nbsp;
+                           <strong>Type:</strong> {row['job_type']}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                download_cols = ["Rank", "processed_text", "company", "country", "published_date", "experience", "job_type", "Similarity (%)"]
+                csv_data = results[download_cols].to_csv(index=False)
+                st.download_button("📥 Download Recommendations as CSV", csv_data, "job_recommendations.csv", "text/csv")
