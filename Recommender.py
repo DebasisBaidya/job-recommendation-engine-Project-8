@@ -35,8 +35,8 @@ def load_resources():
 model, vectorizer, data = load_resources()
 
 # ---------------------- Error Handling ----------------------
-if data.empty:
-    st.error("❌ Job data not found or is empty.")
+if data.empty or 'processed_text' not in data.columns:
+    st.error("❌ Job data not found or is empty or missing 'processed_text' column.")
     st.stop()
 
 # ---------------------- UI Header ----------------------
@@ -56,6 +56,12 @@ with st.form(key="recommend_form"):
 
     submit = st.form_submit_button("🔎 Recommend Jobs")
 
+# ---------------------- Preprocessing Function ----------------------
+def clean_text(text):
+    text = re.sub(r"[^a-zA-Z\s]", "", text)  # Remove non-alphabetic
+    text = re.sub(r"\s+", " ", text)         # Remove extra whitespace
+    return text.lower().strip()
+
 # ---------------------- On Submit ----------------------
 if submit:
     if not job_desc.strip():
@@ -63,14 +69,15 @@ if submit:
     elif model is None or vectorizer is None:
         st.error("⚠️ Model or vectorizer not loaded.")
     else:
-        # Convert user input to vector
-        user_vec = vectorizer.transform([job_desc])
-        distances, indices = model.kneighbors(user_vec, n_neighbors=5)
+        # Preprocess and vectorize user input
+        cleaned_input = clean_text(job_desc)
+        user_vec = vectorizer.transform([cleaned_input])
+        distances, indices = model.kneighbors(user_vec, n_neighbors=6)
 
-        # Filter and prepare data
         results = data.iloc[indices[0]].copy()
         results["Similarity (%)"] = [round((1 - d) * 100, 2) for d in distances[0]]
 
+        # Filter category (optional)
         if job_category:
             results = results[results["category"] == job_category]
 
@@ -82,10 +89,8 @@ if submit:
             results["Rank"] = results.index
 
             # ------------------ Keyword Highlighting ------------------
-            # Clean and tokenize user input for keyword highlighting
             def extract_keywords(text):
-                words = re.findall(r"\b\w{4,}\b", text.lower())  # words with length >= 4
-                return set(words)
+                return set(re.findall(r"\b\w{4,}\b", text.lower()))
 
             keywords = extract_keywords(job_desc)
 
