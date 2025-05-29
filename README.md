@@ -1,4 +1,8 @@
-# 💼 AI-Powered Job Role Recommender System (Project 8)
+# 💼 Job Market Analysis and Recommendation System (Project 8)
+
+[![Streamlit App](https://img.shields.io/badge/Live%20App-Streamlit-brightgreen?logo=streamlit)](https://debasis-baidya-job-recommendation-engine-project-8.streamlit.app/)
+[![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 This is a fully working end-to-end Job Role Recommendation Engine I built using Python, Machine Learning, and NLP. The app takes a custom job description from the user and returns the top 10 most relevant jobs using semantic matching and multiple filters. I built it from scratch – from data wrangling and modeling to Streamlit deployment.
 
@@ -80,6 +84,14 @@ Given a job description written by a user, recommend the most relevant job posti
   - ✨ **Keyword highlighting** using HTML `<mark>` tags in results
 - All session state and reset logic handled using Streamlit’s `st.session_state`
 - App auto-reruns on reset or submit, ensuring clean UX
+
+---
+
+## 📸 App Preview
+
+![App Screenshot](app_screenshot.png)
+
+> Screenshot of Hosted Streamlit Dashboard.
 
 ---
 
