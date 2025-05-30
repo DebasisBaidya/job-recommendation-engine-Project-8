@@ -1,4 +1,4 @@
-# 💼 Job Market Analysis & Recommendation System (Project 8)
+# 💼 Job Market Analysis & Recommendation System
 
 [![Streamlit App](https://img.shields.io/badge/Live%20App-Streamlit-brightgreen?logo=streamlit)](https://debasis-baidya-job-recommendation-engine-project-8.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
