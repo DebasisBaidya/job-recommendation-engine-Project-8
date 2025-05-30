@@ -6,7 +6,7 @@
 
 This is a fully working end-to-end Job Role Recommendation Engine I built using Python, Machine Learning, and NLP. The app takes a custom job description from the user and returns the top 10 most relevant jobs using semantic matching and multiple filters. I built it from scratch – from data wrangling and modeling to Streamlit deployment.
 
-🔗 **Live App**: [Streamlit Link](https://debasis-baidya-job-recommendation-engine-project-8.streamlit.app/)  
+🔗 **Live Tool/App**: [Streamlit Link](https://debasis-baidya-job-recommendation-engine-project-8.streamlit.app/)  
 ▶️ **App Demo**: [YouTube Walkthrough](https://youtu.be/Sr9g2UNLS5g)
 
 ---
