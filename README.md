@@ -3,22 +3,34 @@
 [![Streamlit App](https://img.shields.io/badge/Live%20App-Streamlit-brightgreen?logo=streamlit)](https://debasis-baidya-job-recommendation-engine-project-8.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![IPython](https://img.shields.io/badge/IPython-Used-informational?logo=ipython)](https://ipython.org/)
-[![collections](https://img.shields.io/badge/collections-Used-informational)](https://docs.python.org/3/library/collections.html)
-[![google.colab](https://img.shields.io/badge/Google_Colab-Used-yellow?logo=google-colab)](https://colab.research.google.com/)
-[![matplotlib](https://img.shields.io/badge/Matplotlib-Used-orange?logo=matplotlib)](https://matplotlib.org/)
-[![nltk](https://img.shields.io/badge/NLTK-Used-green?logo=nltk)](https://www.nltk.org/)
-[![numpy](https://img.shields.io/badge/NumPy-Used-blue?logo=numpy)](https://numpy.org/)
-[![os](https://img.shields.io/badge/os-Used-informational)](https://docs.python.org/3/library/os.html)
-[![pandas](https://img.shields.io/badge/Pandas-Used-blue?logo=pandas)](https://pandas.pydata.org/)
-[![pickle](https://img.shields.io/badge/pickle-Used-informational)](https://docs.python.org/3/library/pickle.html)
-[![plotly](https://img.shields.io/badge/Plotly-Used-blueviolet?logo=plotly)](https://plotly.com/)
-[![re](https://img.shields.io/badge/re-Used-informational)](https://docs.python.org/3/library/re.html)
-[![seaborn](https://img.shields.io/badge/Seaborn-Used-teal?logo=seaborn)](https://seaborn.pydata.org/)
-[![scikit-learn](https://img.shields.io/badge/scikit--learn-Used-orange?logo=scikit-learn)](https://scikit-learn.org/)
-[![statsmodels](https://img.shields.io/badge/Statsmodels-Used-blue?logo=statsmodels)](https://www.statsmodels.org/)
-[![warnings](https://img.shields.io/badge/warnings-Used-informational)](https://docs.python.org/3/library/warnings.html)
-[![WordCloud](https://img.shields.io/badge/WordCloud-Used-skyblue)](https://amueller.github.io/word_cloud/)
+<!-- Data Handling -->
+[![Pandas](https://img.shields.io/badge/Pandas-Data_Analysis-blue?logo=pandas)](https://pandas.pydata.org/)
+[![NumPy](https://img.shields.io/badge/NumPy-Numerical_Computing-blue?logo=numpy)](https://numpy.org/)
+
+<!-- Data Visualization -->
+[![Matplotlib](https://img.shields.io/badge/Matplotlib-Visualization-orange?logo=matplotlib)](https://matplotlib.org/)
+[![Seaborn](https://img.shields.io/badge/Seaborn-Statistical_Visualization-teal?logo=seaborn)](https://seaborn.pydata.org/)
+[![Plotly](https://img.shields.io/badge/Plotly-Interactive_Charts-blueviolet?logo=plotly)](https://plotly.com/)
+[![WordCloud](https://img.shields.io/badge/WordCloud-Text_Visualization-skyblue)](https://amueller.github.io/word_cloud/)
+
+<!-- Machine Learning -->
+[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-ML_Models-orange?logo=scikit-learn)](https://scikit-learn.org/)
+[![Statsmodels](https://img.shields.io/badge/Statsmodels-Statistical_Modeling-blue?logo=statsmodels)](https://www.statsmodels.org/)
+
+<!-- Text Processing / NLP -->
+[![re](https://img.shields.io/badge/re-Text_Cleaning-informational)](https://docs.python.org/3/library/re.html)
+[![NLTK](https://img.shields.io/badge/NLTK-Text_Processing-green?logo=nltk)](https://www.nltk.org/)
+[![IPython.display](https://img.shields.io/badge/IPython_Display-Output_Formatting-lightgrey?logo=ipython)](https://ipython.readthedocs.io/)
+[![collections](https://img.shields.io/badge/collections-Data_Structures-lightgrey)](https://docs.python.org/3/library/collections.html)
+
+<!-- Environment & System -->
+[![os](https://img.shields.io/badge/OS-System_Operations-informational)](https://docs.python.org/3/library/os.html)
+[![warnings](https://img.shields.io/badge/Warnings-Ignore_Warnings-lightgrey)](https://docs.python.org/3/library/warnings.html)
+[![pickle](https://img.shields.io/badge/Pickle-Model_Saving_&_Loading-informational)](https://docs.python.org/3/library/pickle.html)
+
+<!-- Notebook & Colab -->
+[![Google Colab](https://img.shields.io/badge/Google_Colab-Notebook_Runtime-yellow?logo=google-colab)](https://colab.research.google.com/)
+
 
 This is a fully working end-to-end Job Role Recommendation Engine I built using Python, Machine Learning, and NLP. The app takes a custom job description from the user and returns the top 10 most relevant jobs using semantic matching and multiple filters. I built it from scratch – from data wrangling and modeling to Streamlit deployment.
 
