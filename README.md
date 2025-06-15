@@ -165,7 +165,21 @@ Given a job description written by a user, recommend the most relevant job posti
 Senior MIS | Data Science Intern  
 ✅ 80%+ automation of manual processes at my workplace  
 📊 Skilled in Power BI, Python, SQL, ML, DL, NLP, Google Apps Script, Google Site  
-📫 Connect: [LinkedIn](https://www.linkedin.com/in/debasisbaidya)
+<p align="left">
+  📫 <strong>Connect with me:</strong>&nbsp;
+
+  <a href="https://www.linkedin.com/in/debasisbaidya">
+    <img src="https://img.shields.io/badge/LinkedIn-View_Profile-blue?logo=linkedin&logoColor=white" />
+  </a>
+
+  <a href="mailto:speak2debasis@gmail.com">
+    <img src="https://img.shields.io/badge/Gmail-Mail_Me-red?logo=gmail&logoColor=white" />
+  </a>
+
+  <a href="https://api.whatsapp.com/send?phone=918013316086&text=Hi%20Debasis!">
+    <img src="https://img.shields.io/badge/WhatsApp-Message-green?logo=whatsapp&logoColor=white" />
+  </a>
+</p>
 
 ---
 
