@@ -3,32 +3,20 @@
 [![Streamlit App](https://img.shields.io/badge/Live%20App-Streamlit-brightgreen?logo=streamlit)](https://debasis-baidya-job-recommendation-engine-project-8.streamlit.app/)
 [![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-<!-- Data Handling -->
-[![Pandas](https://img.shields.io/badge/Pandas-Data_Analysis-blue?logo=pandas)](https://pandas.pydata.org/)
-[![NumPy](https://img.shields.io/badge/NumPy-Numerical_Computing-blue?logo=numpy)](https://numpy.org/)
-
-<!-- Data Visualization -->
-[![Matplotlib](https://img.shields.io/badge/Matplotlib-Visualization-orange?logo=matplotlib)](https://matplotlib.org/)
-[![Seaborn](https://img.shields.io/badge/Seaborn-Statistical_Visualization-teal?logo=seaborn)](https://seaborn.pydata.org/)
 [![Plotly](https://img.shields.io/badge/Plotly-Interactive_Charts-blueviolet?logo=plotly)](https://plotly.com/)
 [![WordCloud](https://img.shields.io/badge/WordCloud-Text_Visualization-skyblue)](https://amueller.github.io/word_cloud/)
-
-<!-- Machine Learning -->
-[![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-ML_Models-orange?logo=scikit-learn)](https://scikit-learn.org/)
+[![StandardScaler](https://img.shields.io/badge/StandardScaler-Feature_Scaling-blue?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html)  
+[![TfidfVectorizer](https://img.shields.io/badge/TfidfVectorizer-Text_Vectorization-purple?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)  
+[![KNeighborsRegressor](https://img.shields.io/badge/K_Nearest_Neighbors-ML_Model-orange?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html)  
+[![ExponentialSmoothing](https://img.shields.io/badge/Exponential_Smoothing-Time_Series_Trend-lightgrey?logo=statsmodels&logoColor=black)](https://www.statsmodels.org/stable/generated/statsmodels.tsa.holtwinters.ExponentialSmoothing.html)  
 [![Statsmodels](https://img.shields.io/badge/Statsmodels-Statistical_Modeling-blue?logo=statsmodels)](https://www.statsmodels.org/)
-
-<!-- Text Processing / NLP -->
 [![re](https://img.shields.io/badge/re-Text_Cleaning-informational)](https://docs.python.org/3/library/re.html)
 [![NLTK](https://img.shields.io/badge/NLTK-Text_Processing-green?logo=nltk)](https://www.nltk.org/)
 [![IPython.display](https://img.shields.io/badge/IPython_Display-Output_Formatting-lightgrey?logo=ipython)](https://ipython.readthedocs.io/)
 [![collections](https://img.shields.io/badge/collections-Data_Structures-lightgrey)](https://docs.python.org/3/library/collections.html)
-
-<!-- Environment & System -->
 [![os](https://img.shields.io/badge/OS-System_Operations-informational)](https://docs.python.org/3/library/os.html)
 [![warnings](https://img.shields.io/badge/Warnings-Ignore_Warnings-lightgrey)](https://docs.python.org/3/library/warnings.html)
 [![pickle](https://img.shields.io/badge/Pickle-Model_Saving_&_Loading-informational)](https://docs.python.org/3/library/pickle.html)
-
-<!-- Notebook & Colab -->
 [![Google Colab](https://img.shields.io/badge/Google_Colab-Notebook_Runtime-yellow?logo=google-colab)](https://colab.research.google.com/)
 
 
