@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
 [![Streamlit App](https://img.shields.io/badge/Live%20App-Streamlit-brightgreen?logo=streamlit)](https://debasis-baidya-job-recommendation-engine-project-8.streamlit.app/) 
-[![Google Colab](https://img.shields.io/badge/Google_Colab-Notebook_Runtime-yellow?logo=google-colab)](https://colab.research.google.com/)
+[![Google Colab](https://img.shields.io/badge/Google_Colab-Notebook-yellow?logo=google-colab)](https://colab.research.google.com/)
 [![Plotly](https://img.shields.io/badge/Plotly-Interactive_Charts-blueviolet?logo=plotly)](https://plotly.com/) 
 [![WordCloud](https://img.shields.io/badge/WordCloud-Text_Visualization-skyblue)](https://amueller.github.io/word_cloud/) 
 [![StandardScaler](https://img.shields.io/badge/StandardScaler-Feature_Scaling-blue?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html)
