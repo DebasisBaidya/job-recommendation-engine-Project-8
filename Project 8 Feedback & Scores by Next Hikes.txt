@@ -1,0 +1,14 @@
+# Project 8 Evaluation Feedback & Scores by Next Hikes
+
+## Feedback
+- The solution demonstrates thorough data processing and analysis, with clear correlation studies between job titles and salaries and well-defined emerging category identification.
+- The prediction models for high-demand roles and future trends are robust and backed by accuracy metrics, and the Streamlit apps provide functional monthly tracking and remote work trend insights.
+- The recommendation engine is well-implemented with semantic matching, filters, and PDF export, although an interactive geographic visualization for hourly rates is missing.
+- The presentation is concise, logically structured, and effectively communicates core findings.
+- Overall, the project meets most deliverables but could be enhanced with deeper geographic interactivity.
+
+## Scores
+- **Score**: 95/100
+- **Grade**: A
+ 
+Keep up the excellent work :)
