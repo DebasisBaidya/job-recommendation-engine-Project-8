@@ -1,13 +1,13 @@
 # 💼 Job Market Analysis & Recommendation System
 
+[![Python](https://img.shields.io/badge/Python-3.13-blue.svg)](https://www.python.org/)
 [![Streamlit App](https://img.shields.io/badge/Live%20App-Streamlit-brightgreen?logo=streamlit)](https://debasis-baidya-job-recommendation-engine-project-8.streamlit.app/) 
-[![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/) 
-[![Google Colab](https://img.shields.io/badge/Google_Colab-Notebook_Runtime-yellow?logo=google-colab)](https://colab.research.google.com/)
+[![Google Colab](https://img.shields.io/badge/Google_Colab-yellow?logo=google-colab)](https://colab.research.google.com/)
 [![Plotly](https://img.shields.io/badge/Plotly-Interactive_Charts-blueviolet?logo=plotly)](https://plotly.com/) 
 [![WordCloud](https://img.shields.io/badge/WordCloud-Text_Visualization-skyblue)](https://amueller.github.io/word_cloud/) 
 [![StandardScaler](https://img.shields.io/badge/StandardScaler-Feature_Scaling-blue?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html)
-[![TfidfVectorizer](https://img.shields.io/badge/TfidfVectorizer-Text_Vectorization-purple?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html) 
-[![KNeighborsRegressor](https://img.shields.io/badge/K_Nearest_Neighbors-ML_Model-orange?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html) 
+[![TfidfVectorizer](https://img.shields.io/badge/TfidfVectorizer-Vectorization-purple?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html) 
+[![KNeighborsRegressor](https://img.shields.io/badge/K_Nearest_Neighbors-Model-orange?logo=scikit-learn&logoColor=white)](https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsRegressor.html) 
 [![ExponentialSmoothing](https://img.shields.io/badge/Exponential_Smoothing-Time_Series_Trend-lightgrey?logo=statsmodels&logoColor=black)](https://www.statsmodels.org/stable/generated/statsmodels.tsa.holtwinters.ExponentialSmoothing.html)
 [![Statsmodels](https://img.shields.io/badge/Statsmodels-Statistical_Modeling-blue?logo=statsmodels)](https://www.statsmodels.org/) 
 [![re](https://img.shields.io/badge/re-Text_Cleaning-informational)](https://docs.python.org/3/library/re.html) 
