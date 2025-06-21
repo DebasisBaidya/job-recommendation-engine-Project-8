@@ -163,7 +163,7 @@ Given a job description written by a user, recommend the most relevant job posti
 
 Hi, I’m **Debasis Baidya** from Kolkata 👋  
 With **11+ years** of experience in the MIS domain, I am now transitioning into the world of **Data Science**.
-Currenty Working as Senior MIS Analyst | Data Science Intern 
+- Currenty Working as Senior MIS Analyst | Data Science Intern 
 
 ✅ 80%+ automation of manual processes at my workplace  
 📊 Skilled in Power BI, Python, SQL, ML, DL, NLP, Google Apps Script, Google Site  
